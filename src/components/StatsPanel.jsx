@@ -4,6 +4,11 @@ function formatNumber(value) {
   }).format(value);
 }
 
+function formatDecimal(value) {
+  if (!Number.isFinite(value)) return "0";
+  return value.toFixed(1);
+}
+
 function percent(value) {
   return `${Math.round(value * 100)}%`;
 }
@@ -37,6 +42,16 @@ export default function StatsPanel({ stats }) {
         <div className="stat-card">
           <span>Predators</span>
           <strong>{formatNumber(stats.predators)}</strong>
+        </div>
+
+        <div className="stat-card">
+          <span>Prey gen</span>
+          <strong>{formatDecimal(stats.preyGeneration)}</strong>
+        </div>
+
+        <div className="stat-card">
+          <span>Predator gen</span>
+          <strong>{formatDecimal(stats.predatorGeneration)}</strong>
         </div>
 
         <div className="stat-card">

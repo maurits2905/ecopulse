@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ControlPanel from "./components/ControlPanel";
 import EventLog from "./components/EventLog";
+import EvolutionPanel from "./components/EvolutionPanel";
 import PopulationChart from "./components/PopulationChart";
 import SettingsPanel from "./components/SettingsPanel";
 import SimulationCanvas from "./components/SimulationCanvas";
 import StatsPanel from "./components/StatsPanel";
+import TraitChart from "./components/TraitChart";
 import { createWorld } from "./simulation/createWorld";
 import { getPresetSettings, PRESETS } from "./simulation/presets";
 import { updateWorld } from "./simulation/updateWorld";
@@ -68,8 +70,8 @@ export default function App() {
           <p className="eyebrow">EcoPulse</p>
           <h1>Emergent ecosystem simulator</h1>
           <p className="hero-text">
-            Grass grows, prey feed, predators hunt, and simple rules create population waves,
-            collapse, recovery and extinction.
+            Grass grows, prey feed, predators hunt, and inherited traits mutate through generations.
+            Simple rules create population waves, collapse, recovery, extinction and artificial evolution.
           </p>
         </div>
 
@@ -95,10 +97,12 @@ export default function App() {
           />
 
           <PopulationChart history={worldView.history} />
+          <TraitChart history={worldView.history} />
         </section>
 
         <aside className="side-column">
           <StatsPanel stats={worldView.stats} />
+          <EvolutionPanel stats={worldView.stats} />
           <SettingsPanel settings={settings} setSettings={setSettings} />
           <EventLog events={worldView.events} />
         </aside>

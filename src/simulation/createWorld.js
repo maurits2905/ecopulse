@@ -1,4 +1,6 @@
+import { clamp } from "../utils/clamp";
 import { createRandom } from "../utils/random";
+import { TRAIT_LIMITS } from "./presets";
 import { collectStats } from "./stats";
 
 let nextAgentId = 1;
@@ -10,6 +12,172 @@ function createCell(random, settings) {
   return {
     grass: hasGrass ? random.range(25, settings.grassMax) : random.range(0, 16),
     fertility,
+  };
+}
+
+function varyTrait(random, value, variance, min, max) {
+  const varied = value + random.range(-variance, variance) * value;
+  return clamp(varied, min, max);
+}
+
+function createPreyTraits(random, settings) {
+  return {
+    speed: varyTrait(
+      random,
+      settings.preySpeed,
+      settings.traitVariance,
+      TRAIT_LIMITS.prey.speed[0],
+      TRAIT_LIMITS.prey.speed[1],
+    ),
+    vision: varyTrait(
+      random,
+      settings.preyVision,
+      settings.traitVariance,
+      TRAIT_LIMITS.prey.vision[0],
+      TRAIT_LIMITS.prey.vision[1],
+    ),
+    caution: varyTrait(
+      random,
+      settings.preyCaution,
+      settings.traitVariance,
+      TRAIT_LIMITS.prey.caution[0],
+      TRAIT_LIMITS.prey.caution[1],
+    ),
+    metabolism: varyTrait(
+      random,
+      settings.preyMetabolism,
+      settings.traitVariance,
+      TRAIT_LIMITS.prey.metabolism[0],
+      TRAIT_LIMITS.prey.metabolism[1],
+    ),
+    reproductionEnergy: varyTrait(
+      random,
+      settings.preyReproductionEnergy,
+      settings.traitVariance,
+      TRAIT_LIMITS.prey.reproductionEnergy[0],
+      TRAIT_LIMITS.prey.reproductionEnergy[1],
+    ),
+  };
+}
+
+function createPredatorTraits(random, settings) {
+  return {
+    speed: varyTrait(
+      random,
+      settings.predatorSpeed,
+      settings.traitVariance,
+      TRAIT_LIMITS.predator.speed[0],
+      TRAIT_LIMITS.predator.speed[1],
+    ),
+    vision: varyTrait(
+      random,
+      settings.predatorVision,
+      settings.traitVariance,
+      TRAIT_LIMITS.predator.vision[0],
+      TRAIT_LIMITS.predator.vision[1],
+    ),
+    aggression: varyTrait(
+      random,
+      settings.predatorAggression,
+      settings.traitVariance,
+      TRAIT_LIMITS.predator.aggression[0],
+      TRAIT_LIMITS.predator.aggression[1],
+    ),
+    metabolism: varyTrait(
+      random,
+      settings.predatorMetabolism,
+      settings.traitVariance,
+      TRAIT_LIMITS.predator.metabolism[0],
+      TRAIT_LIMITS.predator.metabolism[1],
+    ),
+    reproductionEnergy: varyTrait(
+      random,
+      settings.predatorReproductionEnergy,
+      settings.traitVariance,
+      TRAIT_LIMITS.predator.reproductionEnergy[0],
+      TRAIT_LIMITS.predator.reproductionEnergy[1],
+    ),
+  };
+}
+
+function mutateTrait(random, value, mutationRate, min, max) {
+  const mutation = random.range(-mutationRate, mutationRate) * value;
+  return clamp(value + mutation, min, max);
+}
+
+function mutatePreyTraits(parent, world) {
+  const random = world.random;
+  const rate = world.settings.mutationRate;
+
+  return {
+    speed: mutateTrait(
+      random,
+      parent.traits.speed,
+      rate,
+      ...TRAIT_LIMITS.prey.speed,
+    ),
+    vision: mutateTrait(
+      random,
+      parent.traits.vision,
+      rate,
+      ...TRAIT_LIMITS.prey.vision,
+    ),
+    caution: mutateTrait(
+      random,
+      parent.traits.caution,
+      rate,
+      ...TRAIT_LIMITS.prey.caution,
+    ),
+    metabolism: mutateTrait(
+      random,
+      parent.traits.metabolism,
+      rate,
+      ...TRAIT_LIMITS.prey.metabolism,
+    ),
+    reproductionEnergy: mutateTrait(
+      random,
+      parent.traits.reproductionEnergy,
+      rate,
+      ...TRAIT_LIMITS.prey.reproductionEnergy,
+    ),
+  };
+}
+
+function mutatePredatorTraits(parent, world) {
+  const random = world.random;
+  const rate = world.settings.mutationRate;
+
+  return {
+    speed: mutateTrait(
+      random,
+      parent.traits.speed,
+      rate,
+      ...TRAIT_LIMITS.predator.speed,
+    ),
+    vision: mutateTrait(
+      random,
+      parent.traits.vision,
+      rate,
+      ...TRAIT_LIMITS.predator.vision,
+    ),
+    aggression: mutateTrait(
+      random,
+      parent.traits.aggression,
+      rate,
+      ...TRAIT_LIMITS.predator.aggression,
+    ),
+    metabolism: mutateTrait(
+      random,
+      parent.traits.metabolism,
+      rate,
+      ...TRAIT_LIMITS.predator.metabolism,
+    ),
+    reproductionEnergy: mutateTrait(
+      random,
+      parent.traits.reproductionEnergy,
+      rate,
+      ...TRAIT_LIMITS.predator.reproductionEnergy,
+    ),
   };
 }
 
@@ -27,6 +195,7 @@ function createPrey(random, settings) {
     generation: 1,
     cooldown: random.int(0, 40),
     dead: false,
+    traits: createPreyTraits(random, settings),
   };
 }
 
@@ -44,6 +213,7 @@ function createPredator(random, settings) {
     generation: 1,
     cooldown: random.int(0, 80),
     dead: false,
+    traits: createPredatorTraits(random, settings),
   };
 }
 
@@ -83,7 +253,7 @@ export function createWorld(settings) {
         tick: 0,
         type: "info",
         message:
-          "EcoPulse started. Grass, prey and predators are now competing for survival.",
+          "EcoPulse started. Traits now mutate through reproduction and survival pressure.",
       },
     ],
     lastEventFlags: {},
@@ -109,6 +279,7 @@ export function createPreyChild(parent, world) {
     generation: parent.generation + 1,
     cooldown: 70,
     dead: false,
+    traits: mutatePreyTraits(parent, world),
   };
 }
 
@@ -126,5 +297,6 @@ export function createPredatorChild(parent, world) {
     generation: parent.generation + 1,
     cooldown: 110,
     dead: false,
+    traits: mutatePredatorTraits(parent, world),
   };
 }

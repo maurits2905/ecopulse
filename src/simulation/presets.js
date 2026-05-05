@@ -13,7 +13,8 @@ export const DEFAULT_SETTINGS = {
 
   preySpeed: 0.62,
   preyVision: 7,
-  preyHunger: 0.42,
+  preyCaution: 0.9,
+  preyMetabolism: 1,
   preyStartEnergy: 55,
   preyReproductionEnergy: 92,
   preyReproductionCost: 38,
@@ -22,7 +23,8 @@ export const DEFAULT_SETTINGS = {
 
   predatorSpeed: 0.78,
   predatorVision: 10,
-  predatorHunger: 0.68,
+  predatorAggression: 1,
+  predatorMetabolism: 1,
   predatorStartEnergy: 82,
   predatorReproductionEnergy: 135,
   predatorReproductionCost: 55,
@@ -31,6 +33,9 @@ export const DEFAULT_SETTINGS = {
   predatorEatEnergy: 68,
   predatorMaxAge: 1800,
 
+  mutationRate: 0.08,
+  traitVariance: 0.12,
+
   maxPrey: 900,
   maxPredators: 260,
 
@@ -38,6 +43,23 @@ export const DEFAULT_SETTINGS = {
   chartEveryTicks: 8,
   historyLimit: 260,
   seed: 2905,
+};
+
+export const TRAIT_LIMITS = {
+  prey: {
+    speed: [0.35, 1.25],
+    vision: [3, 16],
+    caution: [0.1, 1.8],
+    metabolism: [0.65, 1.55],
+    reproductionEnergy: [55, 150],
+  },
+  predator: {
+    speed: [0.35, 1.45],
+    vision: [4, 22],
+    aggression: [0.2, 2],
+    metabolism: [0.65, 1.8],
+    reproductionEnergy: [85, 220],
+  },
 };
 
 export const PRESETS = {
@@ -78,6 +100,19 @@ export const PRESETS = {
       grassRegrowth: 0.18,
       preyHunger: 0.52,
       predatorHunger: 0.82,
+      mutationRate: 0.11,
+    },
+  },
+
+  fastEvolution: {
+    label: "Fast Evolution",
+    description: "Higher mutation rate makes trait changes visible faster.",
+    settings: {
+      mutationRate: 0.18,
+      preyReproductionChance: 0.06,
+      predatorReproductionChance: 0.04,
+      initialPrey: 145,
+      initialPredators: 28,
     },
   },
 
@@ -95,6 +130,7 @@ export const PRESETS = {
 
 export function getPresetSettings(presetKey) {
   const preset = PRESETS[presetKey] ?? PRESETS.balanced;
+
   return {
     ...DEFAULT_SETTINGS,
     ...preset.settings,

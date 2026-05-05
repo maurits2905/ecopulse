@@ -19,16 +19,17 @@ function updatePrey(world) {
     prey.age += 1;
     prey.cooldown = Math.max(0, prey.cooldown - 1);
 
+    const vision = prey.traits.vision;
+    const speed = prey.traits.speed;
+    const caution = prey.traits.caution;
+    const metabolism = prey.traits.metabolism;
+
     const nearestPredator = findNearestAgent(
       prey,
       world.predators,
-      settings.preyVision,
+      vision * caution,
     );
-    const grassDirection = findBestGrassDirection(
-      prey,
-      world,
-      settings.preyVision,
-    );
+    const grassDirection = findBestGrassDirection(prey, world, vision);
     const wander = randomDirection(world.random);
 
     let movement = {
@@ -42,21 +43,25 @@ function updatePrey(world) {
         y: prey.y - nearestPredator.agent.y,
       });
 
-      movement.x += flee.x * 2.4;
-      movement.y += flee.y * 2.4;
+      movement.x += flee.x * (1.5 + caution * 1.45);
+      movement.y += flee.y * (1.5 + caution * 1.45);
     }
 
     movement = normalize(movement);
 
-    prey.x += movement.x * settings.preySpeed;
-    prey.y += movement.y * settings.preySpeed;
+    prey.x += movement.x * speed;
+    prey.y += movement.y * speed;
 
     keepInBounds(prey, world);
 
     const eaten = eatGrassAt(world, prey.x, prey.y, settings.grassBite);
-    prey.energy += eaten * settings.grassEnergy;
+    const cautionFeedingCost = 1 - Math.min(0.22, caution * 0.06);
 
-    prey.energy -= settings.preyHunger + settings.preySpeed * 0.08;
+    prey.energy += eaten * settings.grassEnergy * cautionFeedingCost;
+
+    const speedCost = speed * 0.12;
+    const visionCost = vision * 0.006;
+    prey.energy -= settings.preyHunger * metabolism + speedCost + visionCost;
 
     maybeReproducePrey(prey, world, newborns);
 
@@ -64,7 +69,7 @@ function updatePrey(world) {
       prey.dead = true;
     }
 
-    prey.energy = clamp(prey.energy, 0, 180);
+    prey.energy = clamp(prey.energy, 0, 190);
   }
 
   world.prey = world.prey.filter((prey) => !prey.dead);
@@ -79,11 +84,12 @@ function updatePredators(world) {
     predator.age += 1;
     predator.cooldown = Math.max(0, predator.cooldown - 1);
 
-    const nearestPrey = findNearestAgent(
-      predator,
-      world.prey,
-      settings.predatorVision,
-    );
+    const vision = predator.traits.vision;
+    const speed = predator.traits.speed;
+    const aggression = predator.traits.aggression;
+    const metabolism = predator.traits.metabolism;
+
+    const nearestPrey = findNearestAgent(predator, world.prey, vision);
     const wander = randomDirection(world.random);
 
     let movement = {
@@ -97,14 +103,14 @@ function updatePredators(world) {
         y: nearestPrey.agent.y - predator.y,
       });
 
-      movement.x += chase.x * 2.1;
-      movement.y += chase.y * 2.1;
+      movement.x += chase.x * (1.3 + aggression * 1.15);
+      movement.y += chase.y * (1.3 + aggression * 1.15);
     }
 
     movement = normalize(movement);
 
-    predator.x += movement.x * settings.predatorSpeed;
-    predator.y += movement.y * settings.predatorSpeed;
+    predator.x += movement.x * speed;
+    predator.y += movement.y * speed;
 
     keepInBounds(predator, world);
 
@@ -119,7 +125,15 @@ function updatePredators(world) {
       predator.energy += settings.predatorEatEnergy;
     }
 
-    predator.energy -= settings.predatorHunger + settings.predatorSpeed * 0.1;
+    const speedCost = speed * 0.14;
+    const visionCost = vision * 0.008;
+    const aggressionCost = aggression * 0.12;
+
+    predator.energy -=
+      settings.predatorHunger * metabolism +
+      speedCost +
+      visionCost +
+      aggressionCost;
 
     maybeReproducePredator(predator, world, newborns);
 
@@ -127,7 +141,7 @@ function updatePredators(world) {
       predator.dead = true;
     }
 
-    predator.energy = clamp(predator.energy, 0, 230);
+    predator.energy = clamp(predator.energy, 0, 240);
   }
 
   world.prey = world.prey.filter((prey) => !prey.dead);

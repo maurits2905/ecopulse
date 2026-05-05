@@ -456,3 +456,99 @@ input[type="range"] {
     flex-direction: column;
   }
 }
+
+.evolution-panel {
+  overflow: hidden;
+}
+
+.trait-section {
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid rgba(233, 255, 243, 0.1);
+  border-radius: 20px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.trait-header {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 12px;
+  color: rgba(233, 255, 243, 0.86);
+}
+
+.trait-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+}
+
+.prey-dot {
+  background: #d7fce8;
+  box-shadow: 0 0 12px rgba(215, 252, 232, 0.45);
+}
+
+.predator-dot {
+  background: #ff6b6b;
+  box-shadow: 0 0 12px rgba(255, 107, 107, 0.45);
+}
+
+.trait-row {
+  display: grid;
+  gap: 7px;
+  margin-top: 11px;
+}
+
+.trait-row-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: rgba(233, 255, 243, 0.66);
+  font-size: 0.82rem;
+}
+
+.trait-row-top strong {
+  color: #e9fff3;
+}
+
+.trait-bar {
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.trait-bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    rgba(130, 247, 173, 0.72),
+    rgba(75, 177, 255, 0.9)
+  );
+}
+
+.trait-chart {
+  height: 170px;
+}
+
+.vision-label {
+  color: #8ebcff;
+}
+
+.prey-vision-line {
+  stroke: rgba(142, 188, 255, 0.5);
+  stroke-width: 2;
+}
+
+.predator-vision-line {
+  stroke: rgba(255, 188, 118, 0.5);
+  stroke-width: 2;
+}
+
+@media (max-width: 1180px) {
+  .evolution-panel {
+    grid-column: auto;
+  }
+}

@@ -5,7 +5,7 @@ export function maybeReproducePrey(prey, world, newborns) {
 
   if (world.prey.length + newborns.length >= settings.maxPrey) return;
   if (prey.cooldown > 0) return;
-  if (prey.energy < settings.preyReproductionEnergy) return;
+  if (prey.energy < prey.traits.reproductionEnergy) return;
   if (!world.random.chance(settings.preyReproductionChance)) return;
 
   prey.energy -= settings.preyReproductionCost;
@@ -19,7 +19,7 @@ export function maybeReproducePredator(predator, world, newborns) {
 
   if (world.predators.length + newborns.length >= settings.maxPredators) return;
   if (predator.cooldown > 0) return;
-  if (predator.energy < settings.predatorReproductionEnergy) return;
+  if (predator.energy < predator.traits.reproductionEnergy) return;
   if (!world.random.chance(settings.predatorReproductionChance)) return;
 
   predator.energy -= settings.predatorReproductionCost;

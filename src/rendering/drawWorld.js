@@ -60,37 +60,64 @@ function drawAgents(ctx, world, cellWidth, cellHeight) {
   for (const prey of world.prey) {
     const energyRatio = Math.min(
       1,
-      prey.energy / world.settings.preyReproductionEnergy,
+      prey.energy / prey.traits.reproductionEnergy,
     );
+    const speedRatio = Math.min(1, prey.traits.speed / 1.25);
+    const cautionRatio = Math.min(1, prey.traits.caution / 1.8);
+
     const x = prey.x * cellWidth;
     const y = prey.y * cellHeight;
-    const radius = 1.8 + energyRatio * 1.2;
+    const radius = 1.6 + energyRatio * 1.1 + speedRatio * 0.5;
+
+    const blue = Math.floor(200 + cautionRatio * 45);
+    const green = Math.floor(220 + speedRatio * 28);
 
     ctx.beginPath();
-    ctx.fillStyle = `rgba(215, 252, 232, ${0.55 + energyRatio * 0.42})`;
-    ctx.shadowColor = "rgba(166, 255, 207, 0.45)";
+    ctx.fillStyle = `rgba(${Math.floor(190 + speedRatio * 45)}, ${green}, ${blue}, ${
+      0.52 + energyRatio * 0.42
+    })`;
+    ctx.shadowColor = "rgba(166, 255, 220, 0.45)";
     ctx.shadowBlur = 6;
     ctx.arc(x, y, radius, 0, Math.PI * 2);
     ctx.fill();
+
+    if (prey.generation > 4) {
+      ctx.beginPath();
+      ctx.strokeStyle = "rgba(255,255,255,0.18)";
+      ctx.lineWidth = 1;
+      ctx.arc(x, y, radius + 1.4, 0, Math.PI * 2);
+      ctx.stroke();
+    }
   }
 
   for (const predator of world.predators) {
     const energyRatio = Math.min(
       1,
-      predator.energy / world.settings.predatorReproductionEnergy,
+      predator.energy / predator.traits.reproductionEnergy,
     );
+    const aggressionRatio = Math.min(1, predator.traits.aggression / 2);
+    const speedRatio = Math.min(1, predator.traits.speed / 1.45);
+
     const x = predator.x * cellWidth;
     const y = predator.y * cellHeight;
-    const radius = 2.8 + energyRatio * 1.8;
+    const radius = 2.7 + energyRatio * 1.6 + aggressionRatio * 0.8;
 
     ctx.beginPath();
-    ctx.fillStyle = `rgba(255, ${Math.floor(86 + energyRatio * 70)}, 88, ${
-      0.62 + energyRatio * 0.35
-    })`;
+    ctx.fillStyle = `rgba(255, ${Math.floor(70 + speedRatio * 95)}, ${Math.floor(
+      70 - aggressionRatio * 30,
+    )}, ${0.62 + energyRatio * 0.35})`;
     ctx.shadowColor = "rgba(255, 80, 80, 0.55)";
     ctx.shadowBlur = 9;
     ctx.arc(x, y, radius, 0, Math.PI * 2);
     ctx.fill();
+
+    if (predator.generation > 4) {
+      ctx.beginPath();
+      ctx.strokeStyle = "rgba(255,160,120,0.25)";
+      ctx.lineWidth = 1.2;
+      ctx.arc(x, y, radius + 1.8, 0, Math.PI * 2);
+      ctx.stroke();
+    }
   }
 
   ctx.shadowBlur = 0;

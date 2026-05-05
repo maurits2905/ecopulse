@@ -1,3 +1,17 @@
+function averageTrait(agents, key) {
+  if (agents.length === 0) return 0;
+  return (
+    agents.reduce((sum, agent) => sum + agent.traits[key], 0) / agents.length
+  );
+}
+
+function averageGeneration(agents) {
+  if (agents.length === 0) return 0;
+  return (
+    agents.reduce((sum, agent) => sum + agent.generation, 0) / agents.length
+  );
+}
+
 export function collectStats(world) {
   const grassTotal = world.cells.reduce((sum, cell) => sum + cell.grass, 0);
   const grassCapacity = world.cells.length * world.settings.grassMax;
@@ -38,6 +52,22 @@ export function collectStats(world) {
     predators: world.predators.length,
     preyEnergy,
     predatorEnergy,
+    preyGeneration: averageGeneration(world.prey),
+    predatorGeneration: averageGeneration(world.predators),
+    preyTraits: {
+      speed: averageTrait(world.prey, "speed"),
+      vision: averageTrait(world.prey, "vision"),
+      caution: averageTrait(world.prey, "caution"),
+      metabolism: averageTrait(world.prey, "metabolism"),
+      reproductionEnergy: averageTrait(world.prey, "reproductionEnergy"),
+    },
+    predatorTraits: {
+      speed: averageTrait(world.predators, "speed"),
+      vision: averageTrait(world.predators, "vision"),
+      aggression: averageTrait(world.predators, "aggression"),
+      metabolism: averageTrait(world.predators, "metabolism"),
+      reproductionEnergy: averageTrait(world.predators, "reproductionEnergy"),
+    },
     status,
   };
 }
@@ -115,6 +145,33 @@ export function evaluateEvents(world) {
       "info",
       "Predator population is very high. Prey are under major pressure.",
       "predator-boom",
+    );
+  }
+
+  if (stats.preyGeneration > 6 && stats.preyTraits.speed > 0.78) {
+    addEvent(
+      world,
+      "info",
+      "Prey speed is rising through selection.",
+      "prey-speed-rising",
+    );
+  }
+
+  if (stats.predatorGeneration > 5 && stats.predatorTraits.aggression > 1.2) {
+    addEvent(
+      world,
+      "info",
+      "Predators are becoming more aggressive over generations.",
+      "predator-aggression-rising",
+    );
+  }
+
+  if (stats.preyGeneration > 5 && stats.preyTraits.metabolism < 0.88) {
+    addEvent(
+      world,
+      "info",
+      "Low-metabolism prey are becoming more common.",
+      "prey-efficient",
     );
   }
 }

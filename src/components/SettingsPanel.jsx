@@ -43,31 +43,38 @@ const SLIDERS = [
   },
   {
     key: "preyReproductionEnergy",
-    label: "Prey reproduction energy",
+    label: "Base prey reproduction energy",
     min: 50,
     max: 160,
     step: 5
   },
   {
     key: "predatorReproductionEnergy",
-    label: "Predator reproduction energy",
+    label: "Base predator reproduction energy",
     min: 80,
     max: 220,
     step: 5
   },
   {
     key: "preyVision",
-    label: "Prey vision",
+    label: "Base prey vision",
     min: 2,
     max: 16,
     step: 1
   },
   {
     key: "predatorVision",
-    label: "Predator vision",
+    label: "Base predator vision",
     min: 3,
     max: 22,
     step: 1
+  },
+  {
+    key: "mutationRate",
+    label: "Mutation rate",
+    min: 0,
+    max: 0.3,
+    step: 0.01
   }
 ];
 
@@ -112,7 +119,7 @@ export default function SettingsPanel({ settings, setSettings }) {
       </div>
 
       <p className="settings-note">
-        Changing sliders affects the next reset. This keeps the running ecosystem stable while you inspect it.
+        Changing sliders affects the next reset. Mutation affects how much offspring can differ from their parents.
       </p>
     </section>
   );
