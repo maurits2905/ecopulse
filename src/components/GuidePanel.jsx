@@ -83,6 +83,7 @@ function Tips() {
         <li>Use slower speeds like 0.25x or 0.5x when you want to watch movement behavior.</li>
         <li>Use the timeline to understand why population changes happened.</li>
         <li>Use export/share to send exact setups to someone else.</li>
+        <li>Use the run report to copy a short summary of what happened in an experiment.</li>
       </ul>
     </div>
   );

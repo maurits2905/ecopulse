@@ -16,6 +16,8 @@ import TerrainPanel from "./components/TerrainPanel";
 import TimelinePanel from "./components/TimelinePanel";
 import TraitChart from "./components/TraitChart";
 import MobileSummaryBar from "./components/MobileSummaryBar";
+import RunSummaryPanel from "./components/RunSummaryPanel";
+import { buildRunSummary } from "./simulation/runSummary";
 import { createWorld } from "./simulation/createWorld";
 import { getPresetSettings, PRESETS } from "./simulation/presets";
 import { evaluateScenario } from "./simulation/scenarios";
@@ -51,6 +53,10 @@ export default function App() {
 
   const selectedPreset = useMemo(() => PRESETS[presetKey], [presetKey]);
   const scenario = useMemo(() => evaluateScenario(presetKey, worldView), [presetKey, worldView]);
+  const runSummary = useMemo(
+  () => buildRunSummary(worldView, scenario),
+  [worldView, scenario]
+  );
 
   const currentExperimentPayload = useMemo(
     () =>
@@ -262,6 +268,7 @@ export default function App() {
         <aside className="side-column">
           <StatsPanel stats={worldView.stats} world={worldView} />
           <ScenarioPanel scenario={scenario} />
+          <RunSummaryPanel summary={runSummary} scenario={scenario} />
           <GuidePanel />
           <InspectorPanel inspected={inspected} />
           <SeasonPanel stats={worldView.stats} />
