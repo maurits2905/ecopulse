@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ControlPanel from "./components/ControlPanel";
 import EventLog from "./components/EventLog";
 import EvolutionPanel from "./components/EvolutionPanel";
+import ExperimentPanel from "./components/ExperimentPanel";
+import InspectorPanel from "./components/InspectorPanel";
 import PopulationChart from "./components/PopulationChart";
 import SeasonPanel from "./components/SeasonPanel";
 import SettingsPanel from "./components/SettingsPanel";
@@ -12,6 +14,11 @@ import TraitChart from "./components/TraitChart";
 import { createWorld } from "./simulation/createWorld";
 import { getPresetSettings, PRESETS } from "./simulation/presets";
 import { updateWorld } from "./simulation/updateWorld";
+import {
+  deleteExperiment,
+  loadSavedExperiments,
+  saveExperiment
+} from "./utils/experiments";
 
 export default function App() {
   const [presetKey, setPresetKey] = useState("balanced");
@@ -19,6 +26,8 @@ export default function App() {
   const [running, setRunning] = useState(false);
   const [speed, setSpeed] = useState(2);
   const [worldView, setWorldView] = useState(() => createWorld(getPresetSettings("balanced")));
+  const [inspected, setInspected] = useState(null);
+  const [savedExperiments, setSavedExperiments] = useState(() => loadSavedExperiments());
 
   const worldRef = useRef(worldView);
   const animationRef = useRef(null);
@@ -29,6 +38,7 @@ export default function App() {
 
   const resetWorld = useCallback(() => {
     tickAccumulatorRef.current = 0;
+    setInspected(null);
 
     const nextWorld = createWorld(settings);
     worldRef.current = nextWorld;
@@ -40,10 +50,40 @@ export default function App() {
     setWorldView({ ...worldRef.current });
   }, []);
 
+  const handleSaveExperiment = useCallback(() => {
+    const name = `${selectedPreset.label} · ${settings.worldWidth}x${settings.worldHeight}`;
+
+    const next = saveExperiment({
+      name,
+      presetKey,
+      settings
+    });
+
+    setSavedExperiments(next);
+  }, [presetKey, selectedPreset.label, settings]);
+
+  const handleLoadExperiment = useCallback((experiment) => {
+    setRunning(false);
+    setPresetKey(experiment.presetKey ?? "balanced");
+    setSettings(experiment.settings);
+    tickAccumulatorRef.current = 0;
+    setInspected(null);
+
+    const nextWorld = createWorld(experiment.settings);
+    worldRef.current = nextWorld;
+    setWorldView({ ...nextWorld });
+  }, []);
+
+  const handleDeleteExperiment = useCallback((id) => {
+    const next = deleteExperiment(id);
+    setSavedExperiments(next);
+  }, []);
+
   useEffect(() => {
     const presetSettings = getPresetSettings(presetKey);
     setSettings(presetSettings);
     tickAccumulatorRef.current = 0;
+    setInspected(null);
 
     const nextWorld = createWorld(presetSettings);
     worldRef.current = nextWorld;
@@ -100,7 +140,7 @@ export default function App() {
 
       <div className="layout">
         <section className="main-column">
-          <SimulationCanvas world={worldView} />
+          <SimulationCanvas world={worldView} onInspect={setInspected} />
 
           <ControlPanel
             running={running}
@@ -119,9 +159,16 @@ export default function App() {
 
         <aside className="side-column">
           <StatsPanel stats={worldView.stats} world={worldView} />
+          <InspectorPanel inspected={inspected} />
           <SeasonPanel stats={worldView.stats} />
           <TerrainPanel stats={worldView.stats} />
           <EvolutionPanel stats={worldView.stats} />
+          <ExperimentPanel
+            savedExperiments={savedExperiments}
+            onSaveExperiment={handleSaveExperiment}
+            onLoadExperiment={handleLoadExperiment}
+            onDeleteExperiment={handleDeleteExperiment}
+          />
           <SettingsPanel settings={settings} setSettings={setSettings} />
           <EventLog events={worldView.events} />
         </aside>

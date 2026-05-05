@@ -833,3 +833,137 @@ input[type="range"] {
 .stat-card strong {
   word-break: break-word;
 }
+
+.inspector-panel,
+.experiment-panel {
+  overflow: hidden;
+}
+
+.inspector-empty {
+  margin: 14px 0 0;
+  color: rgba(233, 255, 243, 0.58);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.inspector-empty.small {
+  font-size: 0.82rem;
+}
+
+.inspector-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.inspector-grid.compact {
+  margin-top: 12px;
+}
+
+.info-pill {
+  padding: 11px;
+  border: 1px solid rgba(233, 255, 243, 0.1);
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.info-pill span {
+  display: block;
+  margin-bottom: 6px;
+  color: rgba(233, 255, 243, 0.48);
+  font-size: 0.72rem;
+}
+
+.info-pill strong {
+  color: #e9fff3;
+  font-size: 0.98rem;
+}
+
+.agent-card {
+  margin-top: 16px;
+  padding: 14px;
+  border-radius: 20px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.agent-card.prey {
+  border: 1px solid rgba(215, 252, 232, 0.22);
+}
+
+.agent-card.predator {
+  border: 1px solid rgba(255, 107, 107, 0.28);
+}
+
+.agent-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.agent-card-header span {
+  color: rgba(233, 255, 243, 0.68);
+}
+
+.agent-card-header strong {
+  color: #e9fff3;
+}
+
+.save-button {
+  width: 100%;
+  margin-top: 14px;
+}
+
+.experiment-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.experiment-item {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid rgba(233, 255, 243, 0.1);
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.experiment-item strong {
+  display: block;
+  color: #e9fff3;
+  font-size: 0.92rem;
+}
+
+.experiment-item span {
+  display: block;
+  margin-top: 4px;
+  color: rgba(233, 255, 243, 0.48);
+  font-size: 0.76rem;
+}
+
+.experiment-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.experiment-actions button {
+  flex: 1;
+  border: 1px solid rgba(233, 255, 243, 0.12);
+  background: rgba(255, 255, 255, 0.07);
+  color: #e9fff3;
+  border-radius: 12px;
+  padding: 9px 10px;
+  font-weight: 800;
+}
+
+.experiment-actions button.delete {
+  color: #ffb8b8;
+  border-color: rgba(255, 107, 107, 0.22);
+}
+
+@media (max-width: 760px) {
+  .inspector-grid {
+    grid-template-columns: 1fr;
+  }
+}
