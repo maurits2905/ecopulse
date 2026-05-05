@@ -1,17 +1,33 @@
+import { MAP_SIZES, RENDER_DETAILS } from "../simulation/presets";
+
 const SLIDERS = [
   {
     key: "initialPrey",
     label: "Initial prey",
     min: 20,
-    max: 300,
+    max: 500,
     step: 5
   },
   {
     key: "initialPredators",
     label: "Initial predators",
     min: 0,
-    max: 80,
+    max: 120,
     step: 2
+  },
+  {
+    key: "maxPrey",
+    label: "Max prey",
+    min: 100,
+    max: 3000,
+    step: 50
+  },
+  {
+    key: "maxPredators",
+    label: "Max predators",
+    min: 50,
+    max: 900,
+    step: 25
   },
   {
     key: "initialGrassDensity",
@@ -31,7 +47,7 @@ const SLIDERS = [
     key: "biomeScale",
     label: "Biome scale",
     min: 10,
-    max: 44,
+    max: 60,
     step: 1
   },
   {
@@ -133,6 +149,14 @@ function displayValue(value) {
   return Math.round(value * 100) / 100;
 }
 
+function getMapSizeKey(settings) {
+  const match = Object.entries(MAP_SIZES).find(
+    ([, size]) => size.width === settings.worldWidth && size.height === settings.worldHeight
+  );
+
+  return match?.[0] ?? "custom";
+}
+
 export default function SettingsPanel({ settings, setSettings }) {
   function updateSetting(key, value) {
     setSettings((current) => ({
@@ -155,11 +179,61 @@ export default function SettingsPanel({ settings, setSettings }) {
     }));
   }
 
+  function updateMapSize(sizeKey) {
+    const size = MAP_SIZES[sizeKey];
+
+    if (!size) return;
+
+    setSettings((current) => ({
+      ...current,
+      worldWidth: size.width,
+      worldHeight: size.height,
+      maxPrey: size.maxPrey,
+      maxPredators: size.maxPredators,
+      initialPrey: size.initialPrey,
+      initialPredators: size.initialPredators,
+      biomeScale:
+        sizeKey === "compact"
+          ? Math.min(current.biomeScale, 24)
+          : sizeKey === "huge"
+            ? Math.max(current.biomeScale, 34)
+            : current.biomeScale,
+      renderDetail: sizeKey === "huge" ? "performance" : current.renderDetail
+    }));
+  }
+
   return (
     <section className="panel settings-panel">
       <div className="panel-heading">
         <p className="eyebrow">Experiment controls</p>
         <h2>World parameters</h2>
+      </div>
+
+      <div className="settings-select-grid">
+        <label className="field">
+          <span>Map size</span>
+          <select value={getMapSizeKey(settings)} onChange={(event) => updateMapSize(event.target.value)}>
+            {Object.entries(MAP_SIZES).map(([key, size]) => (
+              <option key={key} value={key}>
+                {size.label} · {size.width}x{size.height}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="field">
+          <span>Render detail</span>
+          <select
+            value={settings.renderDetail}
+            onChange={(event) => updateSetting("renderDetail", event.target.value)}
+          >
+            {Object.entries(RENDER_DETAILS).map(([key, detail]) => (
+              <option key={key} value={key}>
+                {detail.label}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
 
       <button
@@ -198,7 +272,7 @@ export default function SettingsPanel({ settings, setSettings }) {
       </div>
 
       <p className="settings-note">
-        Changing sliders affects the next reset. Biome scale controls how large terrain regions become.
+        Changing sliders, map size or render detail affects the next reset. Bigger maps are heavier, so use performance mode for huge worlds.
       </p>
     </section>
   );

@@ -2,6 +2,8 @@ export const DEFAULT_SETTINGS = {
   worldWidth: 96,
   worldHeight: 64,
 
+  renderDetail: "balanced",
+
   initialGrassDensity: 0.7,
   grassRegrowth: 0.42,
   grassMax: 100,
@@ -56,6 +58,64 @@ export const DEFAULT_SETTINGS = {
   chartEveryTicks: 8,
   historyLimit: 260,
   seed: 2905,
+};
+
+export const MAP_SIZES = {
+  compact: {
+    label: "Compact",
+    description: "Smaller world, faster simulation.",
+    width: 72,
+    height: 48,
+    maxPrey: 520,
+    maxPredators: 160,
+    initialPrey: 75,
+    initialPredators: 16,
+  },
+  standard: {
+    label: "Standard",
+    description: "Balanced world size for most experiments.",
+    width: 96,
+    height: 64,
+    maxPrey: 900,
+    maxPredators: 260,
+    initialPrey: 110,
+    initialPredators: 24,
+  },
+  large: {
+    label: "Large",
+    description: "More space and richer regional dynamics.",
+    width: 128,
+    height: 80,
+    maxPrey: 1400,
+    maxPredators: 380,
+    initialPrey: 165,
+    initialPredators: 36,
+  },
+  huge: {
+    label: "Huge",
+    description: "Big ecosystem. Best with balanced or performance rendering.",
+    width: 160,
+    height: 96,
+    maxPrey: 2200,
+    maxPredators: 560,
+    initialPrey: 230,
+    initialPredators: 52,
+  },
+};
+
+export const RENDER_DETAILS = {
+  performance: {
+    label: "Performance",
+    description: "Faster drawing with fewer terrain details.",
+  },
+  balanced: {
+    label: "Balanced",
+    description: "Good visuals and good performance.",
+  },
+  detailed: {
+    label: "Detailed",
+    description: "More terrain details. Best for compact or standard maps.",
+  },
 };
 
 export const TRAIT_LIMITS = {

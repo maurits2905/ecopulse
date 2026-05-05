@@ -13,7 +13,7 @@ function percent(value) {
   return `${Math.round(value * 100)}%`;
 }
 
-export default function StatsPanel({ stats }) {
+export default function StatsPanel({ stats, world }) {
   if (!stats) return null;
 
   return (
@@ -30,8 +30,18 @@ export default function StatsPanel({ stats }) {
         </div>
 
         <div className="stat-card">
+          <span>Map</span>
+          <strong>{world?.width ?? 0}x{world?.height ?? 0}</strong>
+        </div>
+
+        <div className="stat-card">
           <span>Grass cover</span>
           <strong>{percent(stats.grassPercent)}</strong>
+        </div>
+
+        <div className="stat-card">
+          <span>Render</span>
+          <strong>{world?.settings?.renderDetail ?? "balanced"}</strong>
         </div>
 
         <div className="stat-card">

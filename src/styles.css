@@ -818,3 +818,18 @@ input[type="range"] {
 .toggle-button + .toggle-button {
   margin-top: 10px;
 }
+
+.settings-select-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.settings-select-grid .field select {
+  width: 100%;
+}
+
+.stat-card strong {
+  word-break: break-word;
+}

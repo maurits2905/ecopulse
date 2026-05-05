@@ -118,7 +118,7 @@ export default function App() {
         </section>
 
         <aside className="side-column">
-          <StatsPanel stats={worldView.stats} />
+          <StatsPanel stats={worldView.stats} world={worldView} />
           <SeasonPanel stats={worldView.stats} />
           <TerrainPanel stats={worldView.stats} />
           <EvolutionPanel stats={worldView.stats} />

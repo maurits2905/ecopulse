@@ -30,7 +30,11 @@ export function drawWorld(canvas, world) {
 
   drawSeasonBackground(ctx, seasonVisual, viewWidth, viewHeight);
   drawTerrainAndGrass(ctx, world, seasonVisual, cellWidth, cellHeight);
-  drawVegetationDetails(ctx, world, cellWidth, cellHeight);
+
+  if (world.settings.renderDetail !== "performance") {
+    drawVegetationDetails(ctx, world, cellWidth, cellHeight);
+  }
+
   drawSeasonAtmosphere(ctx, world, seasonVisual, viewWidth, viewHeight);
   drawAgents(ctx, world, cellWidth, cellHeight);
   drawVignette(ctx, viewWidth, viewHeight);
@@ -141,10 +145,13 @@ function drawTerrainAndGrass(ctx, world, seasonVisual, cellWidth, cellHeight) {
 function drawVegetationDetails(ctx, world, cellWidth, cellHeight) {
   if (cellWidth < 5 || cellHeight < 5) return;
 
+  const detail = world.settings.renderDetail;
+  const skip = detail === "detailed" ? 1 : 2;
+
   ctx.save();
 
-  for (let y = 0; y < world.height; y++) {
-    for (let x = 0; x < world.width; x++) {
+  for (let y = 0; y < world.height; y += skip) {
+    for (let x = 0; x < world.width; x += skip) {
       const cell = world.cells[y * world.width + x];
       const terrain = cell.terrain ?? "grassland";
 
@@ -231,13 +238,13 @@ function drawPrey(ctx, world, cellWidth, cellHeight) {
     const x = prey.x * cellWidth;
     const y = prey.y * cellHeight;
 
-    const baseSize = Math.max(4.4, Math.min(cellWidth, cellHeight) * 0.52);
-    const radius = baseSize + energyRatio * 1.2;
+    const baseSize = Math.max(3.4, Math.min(cellWidth, cellHeight) * 0.48);
+    const radius = baseSize + energyRatio * 1.1;
 
     ctx.save();
 
-    ctx.shadowColor = "rgba(220, 255, 235, 0.9)";
-    ctx.shadowBlur = 8;
+    ctx.shadowColor = "rgba(220, 255, 235, 0.85)";
+    ctx.shadowBlur = world.settings.renderDetail === "performance" ? 0 : 7;
 
     ctx.beginPath();
     ctx.fillStyle = `rgba(235, 255, ${Math.floor(225 + cautionRatio * 30)}, 1)`;
@@ -248,17 +255,19 @@ function drawPrey(ctx, world, cellWidth, cellHeight) {
 
     ctx.beginPath();
     ctx.strokeStyle = "rgba(0, 0, 0, 0.95)";
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 1.8;
     ctx.arc(x, y, radius + 0.8, 0, Math.PI * 2);
     ctx.stroke();
 
-    ctx.beginPath();
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.62)";
-    ctx.lineWidth = 1;
-    ctx.arc(x, y, radius - 1, 0, Math.PI * 2);
-    ctx.stroke();
+    if (world.settings.renderDetail === "detailed") {
+      ctx.beginPath();
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.62)";
+      ctx.lineWidth = 1;
+      ctx.arc(x, y, radius - 1, 0, Math.PI * 2);
+      ctx.stroke();
+    }
 
-    if (prey.generation > 4) {
+    if (prey.generation > 4 && world.settings.renderDetail !== "performance") {
       ctx.beginPath();
       ctx.strokeStyle = "rgba(255,255,255,0.42)";
       ctx.lineWidth = 1;
@@ -281,16 +290,16 @@ function drawPredators(ctx, world, cellWidth, cellHeight) {
     const x = predator.x * cellWidth;
     const y = predator.y * cellHeight;
 
-    const baseSize = Math.max(6.2, Math.min(cellWidth, cellHeight) * 0.74);
-    const size = baseSize + energyRatio * 2;
+    const baseSize = Math.max(5.2, Math.min(cellWidth, cellHeight) * 0.68);
+    const size = baseSize + energyRatio * 1.8;
 
     ctx.save();
 
     ctx.translate(x, y);
     ctx.rotate(((predator.id * 37) % 360) * (Math.PI / 180));
 
-    ctx.shadowColor = "rgba(255, 76, 76, 0.95)";
-    ctx.shadowBlur = 10;
+    ctx.shadowColor = "rgba(255, 76, 76, 0.9)";
+    ctx.shadowBlur = world.settings.renderDetail === "performance" ? 0 : 9;
 
     ctx.beginPath();
     ctx.moveTo(0, -size);
@@ -306,15 +315,20 @@ function drawPredators(ctx, world, cellWidth, cellHeight) {
     ctx.shadowBlur = 0;
 
     ctx.strokeStyle = "rgba(0, 0, 0, 0.96)";
-    ctx.lineWidth = 2.2;
+    ctx.lineWidth = 2;
     ctx.stroke();
 
-    ctx.beginPath();
-    ctx.arc(0, 0, Math.max(1.5, size * 0.18), 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(255, 235, 205, 0.95)";
-    ctx.fill();
+    if (world.settings.renderDetail === "detailed") {
+      ctx.beginPath();
+      ctx.arc(0, 0, Math.max(1.5, size * 0.18), 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(255, 235, 205, 0.95)";
+      ctx.fill();
+    }
 
-    if (predator.generation > 4) {
+    if (
+      predator.generation > 4 &&
+      world.settings.renderDetail !== "performance"
+    ) {
       ctx.beginPath();
       ctx.arc(0, 0, size + 3.4, 0, Math.PI * 2);
       ctx.strokeStyle = "rgba(255,180,130,0.42)";
@@ -340,7 +354,7 @@ function drawSeasonAtmosphere(ctx, world, seasonVisual, width, height) {
     seasonVisual.next.key === "winter" ? seasonVisual.blend : 0;
   const winterWeight = Math.max(currentWinterWeight, nextWinterWeight);
 
-  if (winterWeight > 0.01) {
+  if (winterWeight > 0.01 && world.settings.renderDetail !== "performance") {
     ctx.globalAlpha = 0.1 * winterWeight;
     ctx.fillStyle = "#dbeeff";
 
