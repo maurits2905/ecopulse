@@ -692,3 +692,32 @@ input[type="range"] {
 .season-effects strong {
   font-size: 1.1rem;
 }
+
+.speed-field {
+  flex: 1;
+  min-width: 320px;
+}
+
+.speed-marks {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 2px;
+  color: rgba(233, 255, 243, 0.42);
+  font-size: 0.7rem;
+}
+
+.speed-marks span {
+  min-width: 28px;
+  text-align: center;
+}
+
+@media (max-width: 760px) {
+  .speed-field {
+    min-width: 100%;
+  }
+
+  .speed-marks {
+    font-size: 0.65rem;
+  }
+}

@@ -1,14 +1,11 @@
 import { PRESETS } from "../simulation/presets";
 
-const SPEED_OPTIONS = [
-  { value: 0.25, label: "0.25x" },
-  { value: 0.5, label: "0.5x" },
-  { value: 1, label: "1x" },
-  { value: 2, label: "2x" },
-  { value: 4, label: "4x" },
-  { value: 8, label: "8x" },
-  { value: 12, label: "12x" }
-];
+const SPEED_MARKS = [0.25, 0.5, 1, 2, 4, 8, 12];
+
+function getSpeedLabel(speed) {
+  if (speed < 1) return `${speed.toFixed(2).replace(/0$/, "")}x`;
+  return `${speed}x`;
+}
 
 export default function ControlPanel({
   running,
@@ -23,7 +20,10 @@ export default function ControlPanel({
   return (
     <section className="panel control-panel">
       <div className="control-row">
-        <button className={running ? "button danger" : "button primary"} onClick={() => setRunning(!running)}>
+        <button
+          className={running ? "button danger" : "button primary"}
+          onClick={() => setRunning(!running)}
+        >
           {running ? "Pause" : "Start"}
         </button>
 
@@ -46,15 +46,22 @@ export default function ControlPanel({
           </select>
         </label>
 
-        <label className="field compact speed-select">
-          <span>Speed</span>
-          <select value={speed} onChange={(event) => setSpeed(Number(event.target.value))}>
-            {SPEED_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
+        <label className="field speed-field">
+          <span>Speed: {getSpeedLabel(speed)}</span>
+          <input
+            type="range"
+            min="0"
+            max={SPEED_MARKS.length - 1}
+            step="1"
+            value={SPEED_MARKS.indexOf(speed)}
+            onChange={(event) => setSpeed(SPEED_MARKS[Number(event.target.value)])}
+          />
+
+          <div className="speed-marks">
+            {SPEED_MARKS.map((mark) => (
+              <span key={mark}>{getSpeedLabel(mark)}</span>
             ))}
-          </select>
+          </div>
         </label>
       </div>
     </section>
