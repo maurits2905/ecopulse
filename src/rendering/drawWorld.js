@@ -1,3 +1,5 @@
+import { getSeasonVisualBlend } from "../simulation/seasons";
+
 export function drawWorld(canvas, world) {
   if (!canvas || !world) return;
 
@@ -24,25 +26,31 @@ export function drawWorld(canvas, world) {
 
   const cellWidth = viewWidth / world.width;
   const cellHeight = viewHeight / world.height;
+  const seasonVisual = getSeasonVisualBlend(world);
 
-  drawSeasonBackground(ctx, world, viewWidth, viewHeight);
-  drawGrass(ctx, world, cellWidth, cellHeight);
-  drawSeasonAtmosphere(ctx, world, viewWidth, viewHeight);
+  drawSeasonBackground(ctx, seasonVisual, viewWidth, viewHeight);
+  drawGrass(ctx, world, seasonVisual, cellWidth, cellHeight);
+  drawSeasonAtmosphere(ctx, world, seasonVisual, viewWidth, viewHeight);
   drawAgents(ctx, world, cellWidth, cellHeight);
   drawVignette(ctx, viewWidth, viewHeight);
 }
 
-function drawSeasonBackground(ctx, world, width, height) {
-  const seasonKey = world.stats?.season?.key;
+function lerp(a, b, amount) {
+  return a + (b - a) * amount;
+}
 
-  const colors = {
-    spring: ["rgba(80, 255, 160, 0.08)", "rgba(7, 16, 13, 0)"],
-    summer: ["rgba(255, 210, 90, 0.055)", "rgba(7, 16, 13, 0)"],
-    autumn: ["rgba(255, 125, 55, 0.07)", "rgba(7, 16, 13, 0)"],
-    winter: ["rgba(140, 190, 255, 0.085)", "rgba(7, 16, 13, 0)"],
+function blendedTone(seasonVisual) {
+  const { current, next, blend } = seasonVisual;
+
+  return {
+    red: lerp(current.tone.red, next.tone.red, blend),
+    green: lerp(current.tone.green, next.tone.green, blend),
+    blue: lerp(current.tone.blue, next.tone.blue, blend),
   };
+}
 
-  const selected = colors[seasonKey] ?? colors.summer;
+function drawSeasonBackground(ctx, seasonVisual, width, height) {
+  const tone = blendedTone(seasonVisual);
 
   const gradient = ctx.createRadialGradient(
     width * 0.72,
@@ -50,19 +58,26 @@ function drawSeasonBackground(ctx, world, width, height) {
     0,
     width * 0.72,
     height * 0.18,
-    width * 0.85,
+    width * 0.9,
   );
 
-  gradient.addColorStop(0, selected[0]);
-  gradient.addColorStop(1, selected[1]);
+  gradient.addColorStop(
+    0,
+    `rgba(${tone.red}, ${tone.green}, ${tone.blue}, 0.075)`,
+  );
+  gradient.addColorStop(1, "rgba(7, 16, 13, 0)");
 
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, width, height);
 }
 
-function drawGrass(ctx, world, cellWidth, cellHeight) {
+function drawGrass(ctx, world, seasonVisual, cellWidth, cellHeight) {
   const maxGrass = world.settings.grassMax;
-  const seasonKey = world.stats?.season?.key;
+  const tone = blendedTone(seasonVisual);
+
+  const seasonalRedShift = (tone.red - 120) * 0.09;
+  const seasonalGreenShift = (tone.green - 180) * 0.08;
+  const seasonalBlueShift = (tone.blue - 120) * 0.12;
 
   for (let y = 0; y < world.height; y++) {
     for (let x = 0; x < world.width; x++) {
@@ -70,28 +85,20 @@ function drawGrass(ctx, world, cellWidth, cellHeight) {
       const amount = cell.grass / maxGrass;
       const fertilityGlow = Math.min(1, cell.fertility / 1.35);
 
-      let red = Math.floor(8 + fertilityGlow * 16);
-      let green = Math.floor(35 + amount * 145);
-      let blue = Math.floor(34 + amount * 40);
+      const red = Math.max(
+        0,
+        Math.min(255, Math.floor(8 + fertilityGlow * 16 + seasonalRedShift)),
+      );
+      const green = Math.max(
+        0,
+        Math.min(255, Math.floor(35 + amount * 145 + seasonalGreenShift)),
+      );
+      const blue = Math.max(
+        0,
+        Math.min(255, Math.floor(34 + amount * 40 + seasonalBlueShift)),
+      );
 
-      if (seasonKey === "autumn") {
-        red += 18;
-        green -= 8;
-        blue -= 10;
-      }
-
-      if (seasonKey === "winter") {
-        red += 10;
-        green -= 22;
-        blue += 28;
-      }
-
-      if (seasonKey === "spring") {
-        green += 18;
-        blue += 4;
-      }
-
-      const alpha = 0.28 + amount * 0.7;
+      const alpha = 0.3 + amount * 0.68;
 
       ctx.fillStyle = `rgba(${red}, ${green}, ${blue}, ${alpha})`;
 
@@ -106,131 +113,151 @@ function drawGrass(ctx, world, cellWidth, cellHeight) {
 }
 
 function drawAgents(ctx, world, cellWidth, cellHeight) {
+  ctx.save();
   ctx.shadowBlur = 0;
+  ctx.globalAlpha = 1;
 
+  drawPrey(ctx, world, cellWidth, cellHeight);
+  drawPredators(ctx, world, cellWidth, cellHeight);
+
+  ctx.restore();
+}
+
+function drawPrey(ctx, world, cellWidth, cellHeight) {
   for (const prey of world.prey) {
     const energyRatio = Math.min(
       1,
       prey.energy / prey.traits.reproductionEnergy,
     );
-    const speedRatio = Math.min(1, prey.traits.speed / 1.25);
     const cautionRatio = Math.min(1, prey.traits.caution / 1.8);
 
     const x = prey.x * cellWidth;
     const y = prey.y * cellHeight;
 
-    const radius =
-      Math.max(3.2, Math.min(cellWidth, cellHeight) * 0.34) + energyRatio * 1.2;
+    const baseSize = Math.max(4.4, Math.min(cellWidth, cellHeight) * 0.52);
+    const radius = baseSize + energyRatio * 1.2;
 
-    const red = Math.floor(215 + speedRatio * 30);
-    const green = Math.floor(245);
-    const blue = Math.floor(220 + cautionRatio * 35);
+    ctx.save();
+
+    ctx.shadowColor = "rgba(220, 255, 235, 0.9)";
+    ctx.shadowBlur = 8;
 
     ctx.beginPath();
-    ctx.shadowColor = "rgba(215, 255, 235, 0.85)";
-    ctx.shadowBlur = 10;
-    ctx.fillStyle = `rgba(${red}, ${green}, ${blue}, ${0.92})`;
+    ctx.fillStyle = `rgba(235, 255, ${Math.floor(225 + cautionRatio * 30)}, 1)`;
     ctx.arc(x, y, radius, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.shadowBlur = 0;
+
     ctx.beginPath();
-    ctx.strokeStyle = "rgba(4, 10, 8, 0.85)";
-    ctx.lineWidth = 1.4;
+    ctx.strokeStyle = "rgba(0, 0, 0, 0.95)";
+    ctx.lineWidth = 2;
     ctx.arc(x, y, radius + 0.8, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.62)";
+    ctx.lineWidth = 1;
+    ctx.arc(x, y, radius - 1, 0, Math.PI * 2);
     ctx.stroke();
 
     if (prey.generation > 4) {
       ctx.beginPath();
-      ctx.strokeStyle = "rgba(255,255,255,0.32)";
+      ctx.strokeStyle = "rgba(255,255,255,0.42)";
       ctx.lineWidth = 1;
-      ctx.arc(x, y, radius + 2.4, 0, Math.PI * 2);
+      ctx.arc(x, y, radius + 3.2, 0, Math.PI * 2);
       ctx.stroke();
     }
-  }
 
+    ctx.restore();
+  }
+}
+
+function drawPredators(ctx, world, cellWidth, cellHeight) {
   for (const predator of world.predators) {
     const energyRatio = Math.min(
       1,
       predator.energy / predator.traits.reproductionEnergy,
     );
     const aggressionRatio = Math.min(1, predator.traits.aggression / 2);
-    const speedRatio = Math.min(1, predator.traits.speed / 1.45);
 
     const x = predator.x * cellWidth;
     const y = predator.y * cellHeight;
 
-    const radius =
-      Math.max(4.3, Math.min(cellWidth, cellHeight) * 0.46) + energyRatio * 1.8;
+    const baseSize = Math.max(6.2, Math.min(cellWidth, cellHeight) * 0.74);
+    const size = baseSize + energyRatio * 2;
+
+    ctx.save();
+
+    ctx.translate(x, y);
+    ctx.rotate(((predator.id * 37) % 360) * (Math.PI / 180));
+
+    ctx.shadowColor = "rgba(255, 76, 76, 0.95)";
+    ctx.shadowBlur = 10;
 
     ctx.beginPath();
-    ctx.shadowColor = "rgba(255, 80, 80, 0.9)";
-    ctx.shadowBlur = 13;
-    ctx.fillStyle = `rgba(255, ${Math.floor(82 + speedRatio * 85)}, ${Math.floor(
-      78 - aggressionRatio * 28,
-    )}, 0.96)`;
-    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.moveTo(0, -size);
+    ctx.lineTo(size * 0.86, size * 0.72);
+    ctx.lineTo(-size * 0.86, size * 0.72);
+    ctx.closePath();
+
+    ctx.fillStyle = `rgba(255, ${Math.floor(98 - aggressionRatio * 28)}, ${Math.floor(
+      70 - aggressionRatio * 20,
+    )}, 1)`;
     ctx.fill();
 
     ctx.shadowBlur = 0;
-    ctx.beginPath();
-    ctx.strokeStyle = "rgba(20, 2, 2, 0.9)";
-    ctx.lineWidth = 1.6;
-    ctx.arc(x, y, radius + 0.9, 0, Math.PI * 2);
+
+    ctx.strokeStyle = "rgba(0, 0, 0, 0.96)";
+    ctx.lineWidth = 2.2;
     ctx.stroke();
 
     ctx.beginPath();
-    ctx.fillStyle = "rgba(255, 235, 210, 0.85)";
-    ctx.arc(
-      x - radius * 0.28,
-      y - radius * 0.18,
-      Math.max(0.8, radius * 0.13),
-      0,
-      Math.PI * 2,
-    );
+    ctx.arc(0, 0, Math.max(1.5, size * 0.18), 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(255, 235, 205, 0.95)";
     ctx.fill();
 
     if (predator.generation > 4) {
       ctx.beginPath();
-      ctx.strokeStyle = "rgba(255,180,130,0.36)";
+      ctx.arc(0, 0, size + 3.4, 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(255,180,130,0.42)";
       ctx.lineWidth = 1.2;
-      ctx.arc(x, y, radius + 2.8, 0, Math.PI * 2);
       ctx.stroke();
     }
-  }
 
-  ctx.shadowBlur = 0;
+    ctx.restore();
+  }
 }
 
-function drawSeasonAtmosphere(ctx, world, width, height) {
-  const seasonKey = world.stats?.season?.key;
+function drawSeasonAtmosphere(ctx, world, seasonVisual, width, height) {
+  const tone = blendedTone(seasonVisual);
 
-  if (!seasonKey) return;
+  ctx.save();
 
-  const overlays = {
-    spring: "rgba(80, 255, 160, 0.025)",
-    summer: "rgba(255, 220, 100, 0.018)",
-    autumn: "rgba(255, 128, 64, 0.035)",
-    winter: "rgba(160, 205, 255, 0.045)",
-  };
-
-  ctx.fillStyle = overlays[seasonKey] ?? "rgba(255,255,255,0)";
+  ctx.fillStyle = `rgba(${tone.red}, ${tone.green}, ${tone.blue}, 0.028)`;
   ctx.fillRect(0, 0, width, height);
 
-  if (seasonKey === "winter") {
-    ctx.globalAlpha = 0.08;
+  const currentWinterWeight =
+    seasonVisual.current.key === "winter" ? 1 - seasonVisual.blend : 0;
+  const nextWinterWeight =
+    seasonVisual.next.key === "winter" ? seasonVisual.blend : 0;
+  const winterWeight = Math.max(currentWinterWeight, nextWinterWeight);
+
+  if (winterWeight > 0.01) {
+    ctx.globalAlpha = 0.1 * winterWeight;
     ctx.fillStyle = "#dbeeff";
 
     for (let i = 0; i < 55; i++) {
       const x = (i * 97 + world.tick * 0.12) % width;
       const y = (i * 53 + world.tick * 0.26) % height;
+
       ctx.beginPath();
       ctx.arc(x, y, 1.2, 0, Math.PI * 2);
       ctx.fill();
     }
-
-    ctx.globalAlpha = 1;
   }
+
+  ctx.restore();
 }
 
 function drawVignette(ctx, width, height) {
@@ -244,7 +271,7 @@ function drawVignette(ctx, width, height) {
   );
 
   gradient.addColorStop(0, "rgba(255, 255, 255, 0)");
-  gradient.addColorStop(1, "rgba(0, 0, 0, 0.42)");
+  gradient.addColorStop(1, "rgba(0, 0, 0, 0.36)");
 
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, width, height);
