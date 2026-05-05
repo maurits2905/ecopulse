@@ -232,6 +232,48 @@ const SLIDERS = [
     max: 1,
     step: 0.05
   },
+    {
+    key: "preyHerdingStrength",
+    label: "Prey herding strength",
+    min: 0,
+    max: 1.5,
+    step: 0.05
+  },
+  {
+    key: "preySeparationStrength",
+    label: "Prey separation strength",
+    min: 0,
+    max: 1.8,
+    step: 0.05
+  },
+  {
+    key: "preyShelterSeekingStrength",
+    label: "Prey shelter seeking",
+    min: 0,
+    max: 2.5,
+    step: 0.05
+  },
+  {
+    key: "predatorPackCohesionStrength",
+    label: "Predator pack cohesion",
+    min: 0,
+    max: 1.2,
+    step: 0.05
+  },
+  {
+    key: "predatorPackHuntBonus",
+    label: "Predator pack hunt bonus",
+    min: 0,
+    max: 0.2,
+    step: 0.005
+  },
+  {
+    key: "predatorRestChance",
+    label: "Predator rest chance",
+    min: 0,
+    max: 1,
+    step: 0.05
+  },
 ];
 
 function displayValue(value) {

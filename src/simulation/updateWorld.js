@@ -8,8 +8,10 @@ import { eatGrassAt, getCell } from "./grass";
 import {
   countNearbyAgents,
   findBestGrassDirection,
+  findBestShelterDirection,
   findNearestAgent,
   findNearestVisiblePrey,
+  getGroupVectors,
   keepInBoundsAndTerrain,
   normalize,
   randomDirection,
@@ -52,11 +54,44 @@ function updatePrey(world) {
       vision * caution,
     );
     const grassDirection = findBestGrassDirection(prey, world, vision);
+    const shelterDirection = findBestShelterDirection(prey, world, vision);
+    const groupVectors = getGroupVectors(
+      prey,
+      world.prey,
+      settings.preyHerdingRadius,
+    );
     const wander = randomDirection(world.random);
 
+    const isThreatened = Boolean(nearestPredator.agent);
+    const isStarving =
+      prey.energy <
+      prey.traits.reproductionEnergy * settings.preyStarvingEnergyRatio;
+
+    let grassWeight = isStarving ? 2.15 : 1.2;
+    let fleeWeight = isStarving ? 1.25 : 1.5 + caution * 1.45;
+    let shelterWeight = isThreatened
+      ? settings.preyShelterSeekingStrength * caution
+      : 0;
+
+    if (isStarving && isThreatened) {
+      grassWeight *= 1.2;
+      fleeWeight *= 0.7;
+      shelterWeight *= 0.75;
+    }
+
     let movement = {
-      x: grassDirection.x * 1.2 + wander.x * settings.randomWander,
-      y: grassDirection.y * 1.2 + wander.y * settings.randomWander,
+      x:
+        grassDirection.x * grassWeight +
+        shelterDirection.x * shelterWeight +
+        groupVectors.cohesion.x * settings.preyHerdingStrength +
+        groupVectors.separation.x * settings.preySeparationStrength +
+        wander.x * settings.randomWander,
+      y:
+        grassDirection.y * grassWeight +
+        shelterDirection.y * shelterWeight +
+        groupVectors.cohesion.y * settings.preyHerdingStrength +
+        groupVectors.separation.y * settings.preySeparationStrength +
+        wander.y * settings.randomWander,
     };
 
     if (nearestPredator.agent) {
@@ -65,12 +100,16 @@ function updatePrey(world) {
         y: prey.y - nearestPredator.agent.y,
       });
 
-      movement.x += flee.x * (1.5 + caution * 1.45);
-      movement.y += flee.y * (1.5 + caution * 1.45);
+      movement.x += flee.x * fleeWeight;
+      movement.y += flee.y * fleeWeight;
     }
 
     if (localPrey > 2) {
-      const disperse = randomDirection(world.random);
+      const disperse =
+        groupVectors.nearby > 0
+          ? groupVectors.separation
+          : randomDirection(world.random);
+
       movement.x += disperse.x * Math.min(1.1, localPrey * 0.08);
       movement.y += disperse.y * Math.min(1.1, localPrey * 0.08);
     }
@@ -95,6 +134,8 @@ function updatePrey(world) {
     const speedCost = speed * 0.12;
     const visionCost = vision * 0.006;
     const crowdingCost = localPrey * settings.preyCrowdingEnergyCost;
+    const herdingCost =
+      groupVectors.nearby > 0 ? settings.preyHerdingEnergyCost : 0;
 
     prey.energy -=
       settings.preyHunger *
@@ -103,7 +144,8 @@ function updatePrey(world) {
         environmental.hungerModifier +
       speedCost +
       visionCost +
-      crowdingCost;
+      crowdingCost +
+      herdingCost;
 
     maybeReproducePrey(prey, world, newborns);
 
@@ -142,6 +184,13 @@ function updatePredators(world) {
       world.predators,
       settings.predatorCrowdingRadius,
     );
+
+    const packVectors = getGroupVectors(
+      predator,
+      world.predators,
+      settings.predatorPackRadius,
+    );
+
     predator.localCrowding = localPredators;
 
     const nearestPrey = findNearestVisiblePrey(
@@ -152,25 +201,44 @@ function updatePredators(world) {
     );
     const wander = randomDirection(world.random);
 
+    const isStarving =
+      predator.energy <
+      predator.traits.reproductionEnergy * settings.predatorStarvingEnergyRatio;
+    const preyVisible = Boolean(nearestPrey.agent);
+    const shouldRest =
+      isStarving &&
+      !preyVisible &&
+      world.random.chance(settings.predatorRestChance);
+
     let movement = {
-      x: wander.x * settings.randomWander,
-      y: wander.y * settings.randomWander,
+      x:
+        wander.x * settings.randomWander +
+        packVectors.cohesion.x * settings.predatorPackCohesionStrength +
+        packVectors.separation.x * settings.predatorPackSeparationStrength,
+      y:
+        wander.y * settings.randomWander +
+        packVectors.cohesion.y * settings.predatorPackCohesionStrength +
+        packVectors.separation.y * settings.predatorPackSeparationStrength,
     };
 
-    if (nearestPrey.agent) {
+    if (nearestPrey.agent && !shouldRest) {
       const chase = normalize({
         x: nearestPrey.agent.x - predator.x,
         y: nearestPrey.agent.y - predator.y,
       });
 
-      movement.x += chase.x * (1.3 + aggression * 1.15);
-      movement.y += chase.y * (1.3 + aggression * 1.15);
+      const packPressure =
+        1 + Math.min(0.45, packVectors.nearby * settings.predatorPackHuntBonus);
+
+      movement.x += chase.x * (1.3 + aggression * 1.15) * packPressure;
+      movement.y += chase.y * (1.3 + aggression * 1.15) * packPressure;
     }
 
     if (localPredators > 1) {
-      const disperse = randomDirection(world.random);
-      movement.x += disperse.x * Math.min(0.9, localPredators * 0.06);
-      movement.y += disperse.y * Math.min(0.9, localPredators * 0.06);
+      movement.x +=
+        packVectors.separation.x * Math.min(0.9, localPredators * 0.06);
+      movement.y +=
+        packVectors.separation.y * Math.min(0.9, localPredators * 0.06);
     }
 
     movement = normalize(movement);
@@ -178,18 +246,23 @@ function updatePredators(world) {
     const currentCell = getCell(world, predator.x, predator.y);
     const currentTerrain = getTerrainInfo(currentCell.terrain);
     const terrainSlowdown = currentTerrain.shelter > 0 ? 0.82 : 1;
+    const restMovementFactor = shouldRest ? 0.18 : 1;
 
-    predator.x += movement.x * speed * terrainSlowdown;
-    predator.y += movement.y * speed * terrainSlowdown;
+    predator.x += movement.x * speed * terrainSlowdown * restMovementFactor;
+    predator.y += movement.y * speed * terrainSlowdown * restMovementFactor;
 
     keepInBoundsAndTerrain(predator, world, previousX, previousY);
 
     const predatorCell = getCell(world, predator.x, predator.y);
     const shelter = getTerrainInfo(predatorCell.terrain).shelter;
+    const packKillBonus = Math.min(
+      0.32,
+      packVectors.nearby * settings.predatorPackKillRadiusBonus,
+    );
     const effectiveKillRadius =
-      settings.predatorKillRadius * (1 - shelter * 0.35);
+      settings.predatorKillRadius * (1 + packKillBonus) * (1 - shelter * 0.35);
 
-    if (predator.huntCooldown <= 0) {
+    if (predator.huntCooldown <= 0 && !shouldRest) {
       const preyAfterMove = findNearestAgent(
         predator,
         world.prey,
@@ -203,10 +276,12 @@ function updatePredators(world) {
       }
     }
 
-    const speedCost = speed * 0.14;
+    const speedCost = shouldRest ? speed * 0.035 : speed * 0.14;
     const visionCost = vision * 0.008;
-    const aggressionCost = aggression * 0.12;
+    const aggressionCost = shouldRest ? aggression * 0.035 : aggression * 0.12;
     const crowdingCost = localPredators * settings.predatorCrowdingEnergyCost;
+    const packCost =
+      packVectors.nearby > 0 ? settings.predatorPackEnergyCost : 0;
 
     predator.energy -=
       settings.predatorHunger *
@@ -216,7 +291,12 @@ function updatePredators(world) {
       speedCost +
       visionCost +
       aggressionCost +
-      crowdingCost;
+      crowdingCost +
+      packCost;
+
+    if (shouldRest) {
+      predator.energy += settings.predatorRestEnergySave;
+    }
 
     maybeReproducePredator(predator, world, newborns);
 

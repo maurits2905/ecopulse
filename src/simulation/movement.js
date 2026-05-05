@@ -138,6 +138,45 @@ export function findBestGrassDirection(agent, world, vision) {
   return best ? normalize(best) : { x: 0, y: 0 };
 }
 
+export function findBestShelterDirection(agent, world, vision) {
+  let bestScore = 0;
+  let best = null;
+
+  const startX = Math.floor(agent.x - vision);
+  const endX = Math.floor(agent.x + vision);
+  const startY = Math.floor(agent.y - vision);
+  const endY = Math.floor(agent.y + vision);
+
+  for (let y = startY; y <= endY; y++) {
+    if (y < 0 || y >= world.height) continue;
+
+    for (let x = startX; x <= endX; x++) {
+      if (x < 0 || x >= world.width) continue;
+
+      const cell = getCell(world, x, y);
+      if (isBlockedTerrain(cell.terrain)) continue;
+
+      const terrainInfo = getTerrainInfo(cell.terrain);
+      if (terrainInfo.shelter <= 0) continue;
+
+      const dx = x + 0.5 - agent.x;
+      const dy = y + 0.5 - agent.y;
+      const d = Math.sqrt(dx * dx + dy * dy);
+
+      if (d > vision || d === 0) continue;
+
+      const score = (terrainInfo.shelter * 100 + cell.grass * 0.2) / (d + 1);
+
+      if (score > bestScore) {
+        bestScore = score;
+        best = { x: dx, y: dy };
+      }
+    }
+  }
+
+  return best ? normalize(best) : { x: 0, y: 0 };
+}
+
 export function countNearbyAgents(source, agents, radius) {
   let count = 0;
   const radiusSquared = radius * radius;
@@ -154,6 +193,56 @@ export function countNearbyAgents(source, agents, radius) {
   }
 
   return count;
+}
+
+export function getGroupVectors(source, agents, radius) {
+  let nearby = 0;
+  let centerX = 0;
+  let centerY = 0;
+  let separationX = 0;
+  let separationY = 0;
+
+  for (const target of agents) {
+    if (target.dead || target.id === source.id) continue;
+
+    const dx = target.x - source.x;
+    const dy = target.y - source.y;
+    const distanceSquared = dx * dx + dy * dy;
+
+    if (distanceSquared > radius * radius || distanceSquared === 0) continue;
+
+    const d = Math.sqrt(distanceSquared);
+
+    nearby += 1;
+    centerX += target.x;
+    centerY += target.y;
+
+    separationX -= dx / Math.max(0.1, d * d);
+    separationY -= dy / Math.max(0.1, d * d);
+  }
+
+  if (nearby === 0) {
+    return {
+      nearby: 0,
+      cohesion: { x: 0, y: 0 },
+      separation: { x: 0, y: 0 },
+    };
+  }
+
+  centerX /= nearby;
+  centerY /= nearby;
+
+  return {
+    nearby,
+    cohesion: normalize({
+      x: centerX - source.x,
+      y: centerY - source.y,
+    }),
+    separation: normalize({
+      x: separationX,
+      y: separationY,
+    }),
+  };
 }
 
 export function randomDirection(random) {
