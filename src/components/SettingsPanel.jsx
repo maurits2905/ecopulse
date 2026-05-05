@@ -93,6 +93,34 @@ const SLIDERS = [
     step: 50
   },
   {
+    key: "preyMigrationChance",
+    label: "Prey migration chance",
+    min: 0,
+    max: 0.01,
+    step: 0.0001
+  },
+  {
+    key: "predatorMigrationChance",
+    label: "Predator migration chance",
+    min: 0,
+    max: 0.004,
+    step: 0.00005
+  },
+  {
+    key: "preyMigrationGroupSize",
+    label: "Prey migration group size",
+    min: 1,
+    max: 16,
+    step: 1
+  },
+  {
+    key: "predatorMigrationGroupSize",
+    label: "Predator migration group size",
+    min: 1,
+    max: 8,
+    step: 1
+  },
+  {
     key: "preyHunger",
     label: "Prey hunger",
     min: 0.1,
@@ -135,13 +163,6 @@ const SLIDERS = [
     step: 1
   },
   {
-    key: "mutationRate",
-    label: "Mutation rate",
-    min: 0,
-    max: 0.3,
-    step: 0.01
-  },
-    {
     key: "preyCrowdingEnergyCost",
     label: "Prey crowding cost",
     min: 0,
@@ -168,12 +189,27 @@ const SLIDERS = [
     min: 0,
     max: 0.12,
     step: 0.002
+  },
+  {
+    key: "mutationRate",
+    label: "Mutation rate",
+    min: 0,
+    max: 0.3,
+    step: 0.01
   }
 ];
 
 function displayValue(value) {
   if (typeof value !== "number") return value;
-  if (value < 2 && value % 1 !== 0) return value.toFixed(3).replace(/0$/, "");
+
+  if (value > 0 && value < 0.01) {
+    return value.toFixed(5).replace(/0+$/, "");
+  }
+
+  if (value < 2 && value % 1 !== 0) {
+    return value.toFixed(3).replace(/0+$/, "");
+  }
+
   return Math.round(value * 100) / 100;
 }
 
@@ -211,6 +247,13 @@ export default function SettingsPanel({ settings, setSettings }) {
     setSettings((current) => ({
       ...current,
       showGrid: !current.showGrid
+    }));
+  }
+
+  function toggleMigration() {
+    setSettings((current) => ({
+      ...current,
+      migrationEnabled: !current.migrationEnabled
     }));
   }
 
@@ -289,6 +332,14 @@ export default function SettingsPanel({ settings, setSettings }) {
 
       <button
         type="button"
+        className={settings.migrationEnabled ? "toggle-button active" : "toggle-button"}
+        onClick={toggleMigration}
+      >
+        Migration {settings.migrationEnabled ? "enabled" : "disabled"}
+      </button>
+
+      <button
+        type="button"
         className={settings.showGrid ? "toggle-button active" : "toggle-button"}
         onClick={toggleGrid}
       >
@@ -315,7 +366,7 @@ export default function SettingsPanel({ settings, setSettings }) {
       </div>
 
       <p className="settings-note">
-        Smooth terrain is now the default. Turn on grid mode if you want to inspect the underlying simulation cells.
+        Migration can reintroduce prey or predators from the map edges, which can rescue or destabilize an ecosystem.
       </p>
     </section>
   );

@@ -22,6 +22,13 @@ export const DEFAULT_SETTINGS = {
   seasonsEnabled: true,
   seasonLength: 650,
 
+  migrationEnabled: true,
+  preyMigrationChance: 0.0012,
+  predatorMigrationChance: 0.00035,
+  preyMigrationGroupSize: 4,
+  predatorMigrationGroupSize: 2,
+  predatorMigrationMinimumPrey: 45,
+
   initialPrey: 110,
   initialPredators: 24,
 
@@ -326,6 +333,30 @@ export const PRESETS = {
       waterAmount: 0.025,
       riverAmount: 0.45,
       biomeScale: 28,
+    },
+  },
+
+  migrationCorridor: {
+    label: "Migration Corridor",
+    description:
+      "Occasional prey and predator migration can rescue or destabilize the ecosystem.",
+    settings: {
+      migrationEnabled: true,
+      preyMigrationChance: 0.0022,
+      predatorMigrationChance: 0.00065,
+      preyMigrationGroupSize: 6,
+      predatorMigrationGroupSize: 2,
+      predatorMigrationMinimumPrey: 55,
+      initialPrey: 95,
+      initialPredators: 16,
+      maxPrey: 750,
+      maxPredators: 210,
+      forestAmount: 0.13,
+      fertileAmount: 0.11,
+      waterAmount: 0.025,
+      riverAmount: 0.55,
+      biomeScale: 30,
+      mutationRate: 0.12,
     },
   },
 

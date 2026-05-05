@@ -10,6 +10,7 @@ import {
   randomDirection,
 } from "./movement";
 import { growGrass } from "./grass";
+import { applyMigration } from "./migration";
 import { maybeReproducePredator, maybeReproducePrey } from "./reproduction";
 import { getCurrentSeason } from "./seasons";
 import { getTerrainInfo } from "./terrain";
@@ -83,7 +84,6 @@ function updatePrey(world) {
     const cautionFeedingCost = 1 - Math.min(0.22, caution * 0.06);
 
     prey.recentFood = eaten;
-
     prey.energy += eaten * settings.grassEnergy * cautionFeedingCost;
 
     const speedCost = speed * 0.12;
@@ -223,6 +223,7 @@ export function updateWorld(world) {
   growGrass(world);
   updatePrey(world);
   updatePredators(world);
+  applyMigration(world);
 
   world.tick += 1;
   world.stats = collectStats(world);
