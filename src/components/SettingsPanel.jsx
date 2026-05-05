@@ -28,11 +28,25 @@ const SLIDERS = [
     step: 0.05
   },
   {
+    key: "biomeScale",
+    label: "Biome scale",
+    min: 10,
+    max: 44,
+    step: 1
+  },
+  {
     key: "waterAmount",
-    label: "Water amount",
+    label: "Water / coast amount",
     min: 0,
     max: 0.12,
     step: 0.005
+  },
+  {
+    key: "riverAmount",
+    label: "River amount",
+    min: 0,
+    max: 1,
+    step: 0.05
   },
   {
     key: "forestAmount",
@@ -184,7 +198,7 @@ export default function SettingsPanel({ settings, setSettings }) {
       </div>
 
       <p className="settings-note">
-        Changing sliders affects the next reset. Terrain changes grass growth, shelter and movement.
+        Changing sliders affects the next reset. Biome scale controls how large terrain regions become.
       </p>
     </section>
   );

@@ -10,9 +10,11 @@ export const DEFAULT_SETTINGS = {
 
   terrainEnabled: true,
   waterAmount: 0.035,
-  forestAmount: 0.09,
+  forestAmount: 0.11,
   barrenAmount: 0.08,
-  fertileAmount: 0.08,
+  fertileAmount: 0.09,
+  riverAmount: 0.55,
+  biomeScale: 24,
 
   seasonsEnabled: true,
   seasonLength: 650,
@@ -77,7 +79,7 @@ export const PRESETS = {
   balanced: {
     label: "Balanced Meadow",
     description:
-      "A balanced setup that usually creates waves of growth and collapse.",
+      "A balanced setup with clustered biomes, rivers and population waves.",
     settings: {},
   },
 
@@ -89,35 +91,39 @@ export const PRESETS = {
       initialPredators: 8,
       grassRegrowth: 0.34,
       preyReproductionChance: 0.06,
-      forestAmount: 0.06,
-      barrenAmount: 0.1,
+      forestAmount: 0.07,
+      barrenAmount: 0.11,
+      biomeScale: 22,
     },
   },
 
   predatorPressure: {
     label: "Predator Pressure",
-    description: "More predators. Prey must recover or collapse.",
+    description: "More predators. Forest pockets may help prey survive.",
     settings: {
       initialPrey: 125,
       initialPredators: 42,
       predatorHunger: 0.72,
       predatorReproductionChance: 0.024,
-      forestAmount: 0.13,
+      forestAmount: 0.16,
+      biomeScale: 26,
     },
   },
 
   harshWorld: {
     label: "Harsh World",
-    description: "Grass grows slowly. Winter can become dangerous.",
+    description: "Dry regions and winter pressure make survival difficult.",
     settings: {
       initialGrassDensity: 0.52,
       grassRegrowth: 0.18,
       preyHunger: 0.52,
       predatorHunger: 0.82,
       mutationRate: 0.11,
-      barrenAmount: 0.18,
+      barrenAmount: 0.2,
       fertileAmount: 0.04,
       waterAmount: 0.025,
+      riverAmount: 0.35,
+      biomeScale: 30,
     },
   },
 
@@ -130,8 +136,9 @@ export const PRESETS = {
       predatorReproductionChance: 0.04,
       initialPrey: 145,
       initialPredators: 28,
-      forestAmount: 0.11,
+      forestAmount: 0.12,
       fertileAmount: 0.1,
+      biomeScale: 20,
     },
   },
 
@@ -146,37 +153,59 @@ export const PRESETS = {
       preyHunger: 0.48,
       predatorHunger: 0.78,
       mutationRate: 0.12,
-      forestAmount: 0.12,
+      forestAmount: 0.13,
       barrenAmount: 0.12,
+      biomeScale: 28,
     },
   },
 
   forestRefuge: {
     label: "Forest Refuge",
     description:
-      "More forest cover gives prey shelter and creates safer zones.",
+      "Large forest regions give prey shelter and create safer zones.",
     settings: {
-      forestAmount: 0.22,
+      forestAmount: 0.24,
       waterAmount: 0.025,
+      riverAmount: 0.45,
       barrenAmount: 0.04,
       fertileAmount: 0.12,
       initialPrey: 120,
       initialPredators: 30,
+      biomeScale: 30,
     },
   },
 
   brokenLands: {
     label: "Broken Lands",
     description:
-      "More water and barren ground create fragmented survival pockets.",
+      "Rivers, water and barren regions fragment the map into survival pockets.",
     settings: {
       waterAmount: 0.075,
+      riverAmount: 0.9,
       barrenAmount: 0.18,
       fertileAmount: 0.06,
       forestAmount: 0.08,
       grassRegrowth: 0.3,
       initialPrey: 100,
       initialPredators: 20,
+      biomeScale: 26,
+    },
+  },
+
+  wetlands: {
+    label: "Wetlands",
+    description:
+      "More water, fertile edges and forest clusters create rich but fragmented habitats.",
+    settings: {
+      waterAmount: 0.065,
+      riverAmount: 0.85,
+      forestAmount: 0.16,
+      fertileAmount: 0.16,
+      barrenAmount: 0.03,
+      grassRegrowth: 0.48,
+      initialPrey: 135,
+      initialPredators: 24,
+      biomeScale: 25,
     },
   },
 
@@ -190,6 +219,8 @@ export const PRESETS = {
       initialPredators: 4,
       fertileAmount: 0.12,
       barrenAmount: 0.14,
+      riverAmount: 0.4,
+      biomeScale: 22,
     },
   },
 };

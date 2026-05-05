@@ -2,12 +2,11 @@ import { clamp } from "../utils/clamp";
 import { createRandom } from "../utils/random";
 import { TRAIT_LIMITS } from "./presets";
 import { collectStats } from "./stats";
-import { chooseTerrain, getTerrainInfo, TERRAIN_TYPES } from "./terrain";
+import { generateTerrainMap, getTerrainInfo, TERRAIN_TYPES } from "./terrain";
 
 let nextAgentId = 1;
 
-function createCell(random, settings, x, y) {
-  const terrain = chooseTerrain(random, settings, x, y);
+function createCell(random, settings, terrain) {
   const terrainInfo = getTerrainInfo(terrain);
 
   if (terrain === TERRAIN_TYPES.WATER) {
@@ -200,7 +199,7 @@ function mutatePredatorTraits(parent, world) {
 }
 
 function getRandomLandPosition(random, cells, settings) {
-  for (let attempt = 0; attempt < 400; attempt++) {
+  for (let attempt = 0; attempt < 500; attempt++) {
     const x = random.range(0, settings.worldWidth);
     const y = random.range(0, settings.worldHeight);
     const cell = cells[Math.floor(y) * settings.worldWidth + Math.floor(x)];
@@ -262,17 +261,20 @@ export function createWorld(settings) {
   const random = createRandom(
     settings.seed + Math.floor(Math.random() * 999999),
   );
+  const terrainMap = generateTerrainMap(settings, random);
   const cells = [];
 
   for (let y = 0; y < settings.worldHeight; y++) {
     for (let x = 0; x < settings.worldWidth; x++) {
-      cells.push(createCell(random, settings, x, y));
+      const index = y * settings.worldWidth + x;
+      cells.push(createCell(random, settings, terrainMap[index]));
     }
   }
 
   const prey = Array.from({ length: settings.initialPrey }, () =>
     createPrey(random, settings, cells),
   );
+
   const predators = Array.from({ length: settings.initialPredators }, () =>
     createPredator(random, settings, cells),
   );
@@ -292,7 +294,7 @@ export function createWorld(settings) {
         tick: 0,
         type: "info",
         message:
-          "EcoPulse started. Terrain now shapes grass growth, movement and survival pressure.",
+          "EcoPulse started. Biome-based terrain now creates larger regions, rivers, water and survival zones.",
       },
     ],
     lastEventFlags: {},
