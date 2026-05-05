@@ -6,6 +6,7 @@ import EvolutionPanel from "./components/EvolutionPanel";
 import ExperimentPanel from "./components/ExperimentPanel";
 import InspectorPanel from "./components/InspectorPanel";
 import PopulationChart from "./components/PopulationChart";
+import ScenarioPanel from "./components/ScenarioPanel";
 import SeasonPanel from "./components/SeasonPanel";
 import SettingsPanel from "./components/SettingsPanel";
 import SimulationCanvas from "./components/SimulationCanvas";
@@ -14,6 +15,7 @@ import TerrainPanel from "./components/TerrainPanel";
 import TraitChart from "./components/TraitChart";
 import { createWorld } from "./simulation/createWorld";
 import { getPresetSettings, PRESETS } from "./simulation/presets";
+import { evaluateScenario } from "./simulation/scenarios";
 import { updateWorld } from "./simulation/updateWorld";
 import {
   deleteExperiment,
@@ -36,6 +38,7 @@ export default function App() {
   const tickAccumulatorRef = useRef(0);
 
   const selectedPreset = useMemo(() => PRESETS[presetKey], [presetKey]);
+  const scenario = useMemo(() => evaluateScenario(presetKey, worldView), [presetKey, worldView]);
 
   const resetWorld = useCallback(() => {
     tickAccumulatorRef.current = 0;
@@ -160,6 +163,7 @@ export default function App() {
 
         <aside className="side-column">
           <StatsPanel stats={worldView.stats} world={worldView} />
+          <ScenarioPanel scenario={scenario} />
           <InspectorPanel inspected={inspected} />
           <SeasonPanel stats={worldView.stats} />
           <DisturbancePanel stats={worldView.stats} />

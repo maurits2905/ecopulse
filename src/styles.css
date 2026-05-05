@@ -1035,3 +1035,118 @@ input[type="range"] {
     rgba(255, 107, 107, 0.95)
   );
 }
+
+.scenario-panel {
+  overflow: hidden;
+}
+
+.scenario-panel.complete {
+  border-color: rgba(130, 247, 173, 0.28);
+}
+
+.scenario-panel.failed {
+  border-color: rgba(255, 107, 107, 0.3);
+}
+
+.scenario-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.scenario-status {
+  flex: 0 0 auto;
+  padding: 7px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(233, 255, 243, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(233, 255, 243, 0.76);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.scenario-status.complete {
+  border-color: rgba(130, 247, 173, 0.34);
+  background: rgba(130, 247, 173, 0.12);
+  color: #baffd0;
+}
+
+.scenario-status.failed {
+  border-color: rgba(255, 107, 107, 0.34);
+  background: rgba(255, 107, 107, 0.12);
+  color: #ffbaba;
+}
+
+.scenario-description {
+  margin: 12px 0 0;
+  color: rgba(233, 255, 243, 0.62);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.scenario-objectives {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.scenario-objective {
+  padding: 12px;
+  border: 1px solid rgba(233, 255, 243, 0.1);
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.scenario-objective.complete {
+  border-color: rgba(130, 247, 173, 0.26);
+}
+
+.scenario-objective.failed {
+  border-color: rgba(255, 107, 107, 0.28);
+}
+
+.objective-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.objective-top span {
+  color: rgba(233, 255, 243, 0.72);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.objective-top strong {
+  color: #e9fff3;
+  font-size: 0.82rem;
+}
+
+.objective-bar {
+  height: 7px;
+  margin-top: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.objective-bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    rgba(130, 247, 173, 0.86),
+    rgba(75, 177, 255, 0.9)
+  );
+}
+
+.scenario-objective.failed .objective-bar i {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 107, 107, 0.86),
+    rgba(255, 194, 102, 0.9)
+  );
+}
