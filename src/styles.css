@@ -1706,3 +1706,53 @@ input[type="range"] {
     grid-template-columns: 1fr;
   }
 }
+
+.civilization-panel {
+  overflow: hidden;
+}
+
+.civilization-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.civilization-card {
+  padding: 11px;
+  border: 1px solid rgba(255, 210, 135, 0.16);
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgba(255, 210, 135, 0.08), transparent 62%),
+    rgba(0, 0, 0, 0.18);
+}
+
+.civilization-card span {
+  display: block;
+  margin-bottom: 6px;
+  color: rgba(255, 232, 190, 0.56);
+  font-size: 0.72rem;
+}
+
+.civilization-card strong {
+  display: block;
+  color: #ffe3ad;
+  font-size: 1rem;
+}
+
+.timeline-item.civilization .timeline-dot {
+  background: #ffd28a;
+  box-shadow: 0 0 12px rgba(255, 210, 138, 0.42);
+}
+
+.marker-civilization {
+  color: #ffd28a;
+  stroke: #ffd28a;
+  fill: #ffd28a;
+}
+
+@media (max-width: 560px) {
+  .civilization-grid {
+    grid-template-columns: 1fr;
+  }
+}

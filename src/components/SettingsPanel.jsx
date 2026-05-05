@@ -274,6 +274,48 @@ const SLIDERS = [
     max: 1,
     step: 0.05
   },
+    {
+    key: "initialHumans",
+    label: "Initial humans",
+    min: 0,
+    max: 40,
+    step: 1
+  },
+  {
+    key: "maxHumans",
+    label: "Max humans",
+    min: 0,
+    max: 220,
+    step: 5
+  },
+  {
+    key: "humanHuntChance",
+    label: "Human hunt chance",
+    min: 0,
+    max: 0.35,
+    step: 0.01
+  },
+  {
+    key: "humanGrowthChance",
+    label: "Human growth chance",
+    min: 0,
+    max: 0.08,
+    step: 0.002
+  },
+  {
+    key: "humanLandPressure",
+    label: "Human land pressure",
+    min: 0,
+    max: 1.5,
+    step: 0.05
+  },
+  {
+    key: "humanDeforestationChance",
+    label: "Human deforestation chance",
+    min: 0,
+    max: 0.005,
+    step: 0.0001
+  },
 ];
 
 function displayValue(value) {
@@ -338,6 +380,13 @@ export default function SettingsPanel({ settings, setSettings }) {
     setSettings((current) => ({
       ...current,
       environmentalEventsEnabled: !current.environmentalEventsEnabled
+    }));
+  }
+
+  function toggleCivilization() {
+    setSettings((current) => ({
+    ...current,
+    civilizationEnabled: !current.civilizationEnabled
     }));
   }
 
@@ -436,6 +485,14 @@ export default function SettingsPanel({ settings, setSettings }) {
         onClick={toggleGrid}
       >
         Grid {settings.showGrid ? "visible" : "hidden"}
+      </button>
+
+      <button
+        type="button"
+        className={settings.civilizationEnabled ? "toggle-button active" : "toggle-button"}
+        onClick={toggleCivilization}
+        >
+        Civilization {settings.civilizationEnabled ? "enabled" : "disabled"}
       </button>
 
       <div className="settings-list">

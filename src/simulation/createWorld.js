@@ -2,6 +2,7 @@ import { clamp } from "../utils/clamp";
 import { createRandom } from "../utils/random";
 import { TRAIT_LIMITS } from "./presets";
 import { collectStats } from "./stats";
+import { initializeCivilization } from "./civilization";
 import { generateTerrainMap, getTerrainInfo, TERRAIN_TYPES } from "./terrain";
 
 let nextAgentId = 1;
@@ -313,6 +314,10 @@ export function createWorld(settings) {
 
   world.stats = collectStats(world);
   world.history.push(world.stats);
+
+  initializeCivilization(world);
+  world.stats = collectStats(world);
+  world.history[0] = world.stats;
 
   return world;
 }

@@ -51,6 +51,7 @@ function Overview() {
         <Info title="Predators" text="Chase prey, rest when starving, reproduce when prey are available." />
         <Info title="Terrain" text="Forests give shelter, water blocks movement, fertile land helps grass recover." />
         <Info title="Events" text="Migration, drought, disease, wildfire and seasons can change the balance." />
+        <Info title="Humans" text="Optional civilization mode adds humans that gather food, cut forest, hunt prey and build huts." />
       </div>
     </div>
   );
@@ -95,7 +96,7 @@ function Roadmap() {
       <ul className="guide-list">
         <li><strong>Next:</strong> responsive/mobile polish and layout cleanup.</li>
         <li><strong>Later:</strong> better terrain generation and smoother biome shapes.</li>
-        <li><strong>Later:</strong> civilization mode with humans, resources, huts and roads.</li>
+        <li><strong>Now experimental:</strong> civilization mode with humans, resources, huts and settlement pressure.</li>
         <li><strong>Later:</strong> more advanced charts, scenario scoring and replay summaries.</li>
       </ul>
     </div>

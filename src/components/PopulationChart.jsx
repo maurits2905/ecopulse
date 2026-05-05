@@ -16,6 +16,7 @@ function getMarkerClass(category) {
   if (category === "extinction") return "marker-extinction";
   if (category === "season") return "marker-season";
   if (category === "evolution") return "marker-evolution";
+  if (category === "civilization") return "marker-civilization";
   return "marker-system";
 }
 
@@ -108,6 +109,7 @@ export default function PopulationChart({ history, timelineEvents = [] }) {
         <span className="marker-season">Season</span>
         <span className="marker-evolution">Evolution</span>
         <span className="marker-extinction">Extinction</span>
+        <span className="marker-civilization">Civilization</span>
       </div>
     </section>
   );

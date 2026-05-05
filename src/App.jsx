@@ -17,6 +17,7 @@ import TimelinePanel from "./components/TimelinePanel";
 import TraitChart from "./components/TraitChart";
 import MobileSummaryBar from "./components/MobileSummaryBar";
 import RunSummaryPanel from "./components/RunSummaryPanel";
+import CivilizationPanel from "./components/CivilizationPanel";
 import { buildRunSummary } from "./simulation/runSummary";
 import { createWorld } from "./simulation/createWorld";
 import { getPresetSettings, PRESETS } from "./simulation/presets";
@@ -273,6 +274,8 @@ export default function App() {
           <InspectorPanel inspected={inspected} />
           <SeasonPanel stats={worldView.stats} />
           <DisturbancePanel stats={worldView.stats} />
+          <CivilizationPanel stats={worldView.stats} />
+          <TimelinePanel timelineEvents={worldView.timelineEvents} />
           <TimelinePanel timelineEvents={worldView.timelineEvents} />
           <TerrainPanel stats={worldView.stats} />
           <EvolutionPanel stats={worldView.stats} />

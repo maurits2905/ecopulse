@@ -59,12 +59,23 @@ export function collectStats(world) {
     status = "Prey expansion";
   }
 
+  const civilization = world.civilization ?? {
+    enabled: false,
+    population: 0,
+    food: 0,
+    wood: 0,
+    huts: 0,
+    pressure: 0,
+  };
+
   return {
     tick: world.tick,
     grassTotal,
     grassPercent: grassTotal / grassCapacity,
     prey: world.prey.length,
     predators: world.predators.length,
+    civilization,
+    humans: world.humans?.length ?? 0,
     preyEnergy,
     predatorEnergy,
     preyGeneration: averageGeneration(world.prey),
@@ -130,6 +141,7 @@ export function evaluateEvents(world) {
       "danger",
       "Prey went extinct. Predators will starve unless the world is reset or migration brings prey back.",
       "prey-extinct",
+      "extinction",
     );
   }
 
@@ -146,8 +158,9 @@ export function evaluateEvents(world) {
     addEvent(
       world,
       "warning",
-      "Grass is critically depleted. The ecosystem is overgrazed.",
-      "grass-critical",
+      "Predators went extinct. Prey may expand rapidly unless migration reintroduces predators.",
+      "predator-extinct",
+      "extinction",
     );
   }
 
@@ -175,6 +188,7 @@ export function evaluateEvents(world) {
       "info",
       "Prey speed is rising through selection.",
       "prey-speed-rising",
+      "evolution",
     );
   }
 
@@ -184,6 +198,7 @@ export function evaluateEvents(world) {
       "info",
       "Predators are becoming more aggressive over generations.",
       "predator-aggression-rising",
+      "evolution",
     );
   }
 
@@ -193,15 +208,17 @@ export function evaluateEvents(world) {
       "info",
       "Low-metabolism prey are becoming more common.",
       "prey-efficient",
+      "evolution",
     );
   }
 
   if (season.key === "winter" && season.progress < 0.02) {
     addEvent(
       world,
-      "warning",
-      "Winter has started. Grass growth is low and hunger pressure is higher.",
-      `winter-${Math.floor(world.tick / world.settings.seasonLength)}`,
+      "info",
+      "Spring has returned. Grass recovery is accelerating.",
+      `spring-${Math.floor(world.tick / world.settings.seasonLength)}`,
+      "season",
     );
   }
 

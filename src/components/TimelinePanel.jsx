@@ -4,6 +4,7 @@ function labelForCategory(category) {
   if (category === "extinction") return "Extinction";
   if (category === "season") return "Season";
   if (category === "evolution") return "Evolution";
+  if (category === "civilization") return "Civilization";
   return "System";
 }
 

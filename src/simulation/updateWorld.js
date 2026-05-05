@@ -1,4 +1,5 @@
 import { clamp } from "../utils/clamp";
+import { updateCivilization } from "./civilization";
 import {
   applyEnvironmentalEventEffects,
   getEnvironmentalModifiers,
@@ -318,6 +319,7 @@ export function updateWorld(world) {
   updatePrey(world);
   updatePredators(world);
   applyMigration(world);
+  updateCivilization(world);
   applyEnvironmentalEventEffects(world);
 
   world.tick += 1;

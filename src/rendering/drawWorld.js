@@ -37,7 +37,9 @@ export function drawWorld(canvas, world) {
   }
 
   drawSeasonAtmosphere(ctx, world, seasonVisual, viewWidth, viewHeight);
+  drawSettlement(ctx, world, cellWidth, cellHeight);
   drawAgents(ctx, world, cellWidth, cellHeight);
+  drawHumans(ctx, world, cellWidth, cellHeight);
 
   if (world.settings.showGrid) {
     drawGrid(ctx, world, cellWidth, cellHeight, viewWidth, viewHeight);
@@ -546,4 +548,84 @@ function drawVignette(ctx, width, height) {
 function pseudoRandom(x, y) {
   const value = Math.sin(x * 127.1 + y * 311.7) * 43758.5453123;
   return value - Math.floor(value);
+}
+
+function drawSettlement(ctx, world, cellWidth, cellHeight) {
+  const civ = world.civilization;
+
+  if (!civ?.enabled) return;
+
+  const x = civ.settlementX * cellWidth;
+  const y = civ.settlementY * cellHeight;
+  const size = Math.max(
+    7,
+    Math.min(cellWidth, cellHeight) * 1.6 + civ.huts * 0.45,
+  );
+
+  ctx.save();
+
+  ctx.shadowColor = "rgba(255, 210, 130, 0.7)";
+  ctx.shadowBlur = world.settings.renderDetail === "performance" ? 0 : 12;
+
+  ctx.fillStyle = "rgba(168, 112, 62, 0.96)";
+  ctx.strokeStyle = "rgba(20, 10, 4, 0.95)";
+  ctx.lineWidth = 2;
+
+  for (let i = 0; i < civ.huts; i++) {
+    const angle = (i / Math.max(1, civ.huts)) * Math.PI * 2;
+    const hx = x + Math.cos(angle) * size * 0.9;
+    const hy = y + Math.sin(angle) * size * 0.65;
+    const hutSize = Math.max(4, size * 0.38);
+
+    ctx.beginPath();
+    ctx.moveTo(hx, hy - hutSize);
+    ctx.lineTo(hx + hutSize, hy);
+    ctx.lineTo(hx + hutSize * 0.7, hy + hutSize);
+    ctx.lineTo(hx - hutSize * 0.7, hy + hutSize);
+    ctx.lineTo(hx - hutSize, hy);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  ctx.beginPath();
+  ctx.arc(x, y, Math.max(3.5, size * 0.25), 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(255, 226, 150, 0.95)";
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+function drawHumans(ctx, world, cellWidth, cellHeight) {
+  if (!world.civilization?.enabled || !world.humans?.length) return;
+
+  ctx.save();
+
+  for (const human of world.humans) {
+    const x = human.x * cellWidth;
+    const y = human.y * cellHeight;
+    const radius = Math.max(3.2, Math.min(cellWidth, cellHeight) * 0.36);
+
+    ctx.beginPath();
+    ctx.shadowColor = "rgba(255, 220, 150, 0.75)";
+    ctx.shadowBlur = world.settings.renderDetail === "performance" ? 0 : 7;
+    ctx.fillStyle = "rgba(255, 210, 135, 0.98)";
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = "rgba(35, 18, 5, 0.95)";
+    ctx.lineWidth = 1.6;
+    ctx.stroke();
+
+    if (world.settings.renderDetail === "detailed") {
+      ctx.beginPath();
+      ctx.fillStyle = "rgba(70, 38, 12, 0.85)";
+      ctx.arc(x, y - radius * 0.25, radius * 0.28, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  ctx.restore();
 }
