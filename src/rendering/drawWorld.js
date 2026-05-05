@@ -29,19 +29,29 @@ export function drawWorld(canvas, world) {
   const seasonVisual = getSeasonVisualBlend(world);
 
   drawSeasonBackground(ctx, seasonVisual, viewWidth, viewHeight);
-  drawTerrainAndGrass(ctx, world, seasonVisual, cellWidth, cellHeight);
+  drawSmoothTerrain(ctx, world, seasonVisual, viewWidth, viewHeight);
 
   if (world.settings.renderDetail !== "performance") {
-    drawVegetationDetails(ctx, world, cellWidth, cellHeight);
+    drawWaterEdges(ctx, world, cellWidth, cellHeight);
+    drawTerrainDetails(ctx, world, cellWidth, cellHeight);
   }
 
   drawSeasonAtmosphere(ctx, world, seasonVisual, viewWidth, viewHeight);
   drawAgents(ctx, world, cellWidth, cellHeight);
+
+  if (world.settings.showGrid) {
+    drawGrid(ctx, world, cellWidth, cellHeight, viewWidth, viewHeight);
+  }
+
   drawVignette(ctx, viewWidth, viewHeight);
 }
 
 function lerp(a, b, amount) {
   return a + (b - a) * amount;
+}
+
+function clampColor(value) {
+  return Math.max(0, Math.min(255, Math.floor(value)));
 }
 
 function blendedTone(seasonVisual) {
@@ -76,7 +86,15 @@ function drawSeasonBackground(ctx, seasonVisual, width, height) {
   ctx.fillRect(0, 0, width, height);
 }
 
-function drawTerrainAndGrass(ctx, world, seasonVisual, cellWidth, cellHeight) {
+function drawSmoothTerrain(ctx, world, seasonVisual, width, height) {
+  const offscreen = document.createElement("canvas");
+  offscreen.width = world.width;
+  offscreen.height = world.height;
+
+  const offCtx = offscreen.getContext("2d");
+  const imageData = offCtx.createImageData(world.width, world.height);
+  const pixels = imageData.data;
+
   const maxGrass = world.settings.grassMax;
   const tone = blendedTone(seasonVisual);
 
@@ -86,67 +104,147 @@ function drawTerrainAndGrass(ctx, world, seasonVisual, cellWidth, cellHeight) {
 
   for (let y = 0; y < world.height; y++) {
     for (let x = 0; x < world.width; x++) {
-      const cell = world.cells[y * world.width + x];
+      const index = y * world.width + x;
+      const cell = world.cells[index];
       const amount = cell.grass / maxGrass;
       const terrain = cell.terrain ?? "grassland";
 
-      let red = 8;
-      let green = 35 + amount * 145;
-      let blue = 34 + amount * 40;
-      let alpha = 0.3 + amount * 0.68;
+      const color = getTerrainColor({
+        terrain,
+        grassAmount: amount,
+        fertility: cell.fertility,
+        seasonalRedShift,
+        seasonalGreenShift,
+        seasonalBlueShift,
+      });
 
-      if (terrain === "fertile") {
-        red += 5;
-        green += 34;
-        blue += 7;
-      }
-
-      if (terrain === "forest") {
-        red -= 2;
-        green += 16;
-        blue -= 8;
-        alpha += 0.04;
-      }
-
-      if (terrain === "barren") {
-        red += 54;
-        green -= 18;
-        blue -= 14;
-        alpha = 0.48 + amount * 0.36;
-      }
-
-      if (terrain === "water") {
-        red = 12;
-        green = 52;
-        blue = 78;
-        alpha = 0.92;
-      } else {
-        red += seasonalRedShift;
-        green += seasonalGreenShift;
-        blue += seasonalBlueShift;
-      }
-
-      red = Math.max(0, Math.min(255, Math.floor(red)));
-      green = Math.max(0, Math.min(255, Math.floor(green)));
-      blue = Math.max(0, Math.min(255, Math.floor(blue)));
-
-      ctx.fillStyle = `rgba(${red}, ${green}, ${blue}, ${alpha})`;
-
-      ctx.fillRect(
-        x * cellWidth,
-        y * cellHeight,
-        Math.ceil(cellWidth) + 0.5,
-        Math.ceil(cellHeight) + 0.5,
-      );
+      const pixelIndex = index * 4;
+      pixels[pixelIndex] = color.red;
+      pixels[pixelIndex + 1] = color.green;
+      pixels[pixelIndex + 2] = color.blue;
+      pixels[pixelIndex + 3] = 255;
     }
   }
+
+  offCtx.putImageData(imageData, 0, 0);
+
+  ctx.save();
+
+  ctx.imageSmoothingEnabled = world.settings.renderDetail !== "performance";
+  ctx.imageSmoothingQuality =
+    world.settings.renderDetail === "detailed" ? "high" : "medium";
+
+  ctx.drawImage(offscreen, 0, 0, width, height);
+
+  ctx.restore();
 }
 
-function drawVegetationDetails(ctx, world, cellWidth, cellHeight) {
-  if (cellWidth < 5 || cellHeight < 5) return;
+function getTerrainColor({
+  terrain,
+  grassAmount,
+  fertility,
+  seasonalRedShift,
+  seasonalGreenShift,
+  seasonalBlueShift,
+}) {
+  let red = 9;
+  let green = 42 + grassAmount * 130;
+  let blue = 35 + grassAmount * 38;
 
+  if (terrain === "grassland") {
+    red += fertility * 2;
+    green += fertility * 6;
+  }
+
+  if (terrain === "fertile") {
+    red += 4;
+    green += 46;
+    blue += 8;
+  }
+
+  if (terrain === "forest") {
+    red -= 4;
+    green += 20;
+    blue -= 10;
+  }
+
+  if (terrain === "barren") {
+    red += 62;
+    green -= 20;
+    blue -= 18;
+  }
+
+  if (terrain === "water") {
+    return {
+      red: 12,
+      green: 58,
+      blue: 92,
+    };
+  }
+
+  red += seasonalRedShift;
+  green += seasonalGreenShift;
+  blue += seasonalBlueShift;
+
+  return {
+    red: clampColor(red),
+    green: clampColor(green),
+    blue: clampColor(blue),
+  };
+}
+
+function drawWaterEdges(ctx, world, cellWidth, cellHeight) {
+  ctx.save();
+
+  for (let y = 0; y < world.height; y++) {
+    for (let x = 0; x < world.width; x++) {
+      const cell = world.cells[y * world.width + x];
+
+      if ((cell.terrain ?? "grassland") !== "water") continue;
+
+      const edgeScore = getLandNeighborScore(world, x, y);
+
+      if (edgeScore === 0) continue;
+
+      const px = x * cellWidth;
+      const py = y * cellHeight;
+
+      ctx.fillStyle = `rgba(130, 220, 255, ${0.04 + edgeScore * 0.025})`;
+      ctx.fillRect(px, py, cellWidth + 1, cellHeight + 1);
+    }
+  }
+
+  ctx.restore();
+}
+
+function getLandNeighborScore(world, x, y) {
+  let score = 0;
+
+  for (let oy = -1; oy <= 1; oy++) {
+    for (let ox = -1; ox <= 1; ox++) {
+      if (ox === 0 && oy === 0) continue;
+
+      const nx = x + ox;
+      const ny = y + oy;
+
+      if (nx < 0 || ny < 0 || nx >= world.width || ny >= world.height) continue;
+
+      const neighbor = world.cells[ny * world.width + nx];
+
+      if ((neighbor.terrain ?? "grassland") !== "water") {
+        score += 1;
+      }
+    }
+  }
+
+  return score;
+}
+
+function drawTerrainDetails(ctx, world, cellWidth, cellHeight) {
   const detail = world.settings.renderDetail;
   const skip = detail === "detailed" ? 1 : 2;
+
+  if (cellWidth < 3 || cellHeight < 3) return;
 
   ctx.save();
 
@@ -154,66 +252,96 @@ function drawVegetationDetails(ctx, world, cellWidth, cellHeight) {
     for (let x = 0; x < world.width; x += skip) {
       const cell = world.cells[y * world.width + x];
       const terrain = cell.terrain ?? "grassland";
+      const seed = pseudoRandom(x, y);
 
-      if (terrain !== "forest" && terrain !== "water" && terrain !== "fertile")
-        continue;
-
-      const centerX = x * cellWidth + cellWidth * 0.5;
-      const centerY = y * cellHeight + cellHeight * 0.5;
-      const seed = (x * 17 + y * 31) % 10;
-
-      if (terrain === "forest" && seed < 4) {
-        ctx.beginPath();
-        ctx.fillStyle = "rgba(20, 78, 42, 0.78)";
-        ctx.arc(
-          centerX,
-          centerY,
-          Math.max(1.3, Math.min(cellWidth, cellHeight) * 0.22),
-          0,
-          Math.PI * 2,
-        );
-        ctx.fill();
-
-        ctx.beginPath();
-        ctx.fillStyle = "rgba(75, 155, 82, 0.52)";
-        ctx.arc(
-          centerX + cellWidth * 0.12,
-          centerY - cellHeight * 0.08,
-          Math.max(1, Math.min(cellWidth, cellHeight) * 0.13),
-          0,
-          Math.PI * 2,
-        );
-        ctx.fill();
+      if (terrain === "forest") {
+        drawForestDetail(ctx, x, y, cellWidth, cellHeight, seed, detail);
       }
 
-      if (terrain === "fertile" && seed < 2) {
-        ctx.beginPath();
-        ctx.fillStyle = "rgba(140, 255, 150, 0.35)";
-        ctx.arc(
-          centerX,
-          centerY,
-          Math.max(1, Math.min(cellWidth, cellHeight) * 0.12),
-          0,
-          Math.PI * 2,
-        );
-        ctx.fill();
+      if (terrain === "fertile" && seed > 0.64) {
+        drawFertileDetail(ctx, x, y, cellWidth, cellHeight, seed);
       }
 
-      if (terrain === "water" && seed < 3) {
-        ctx.beginPath();
-        ctx.strokeStyle = "rgba(120, 210, 255, 0.18)";
-        ctx.lineWidth = 1;
-        ctx.moveTo(x * cellWidth + cellWidth * 0.18, centerY);
-        ctx.lineTo(
-          x * cellWidth + cellWidth * 0.82,
-          centerY + Math.sin(seed) * 1.5,
-        );
-        ctx.stroke();
+      if (terrain === "barren" && seed > 0.68) {
+        drawBarrenDetail(ctx, x, y, cellWidth, cellHeight, seed);
+      }
+
+      if (terrain === "water" && seed > 0.58) {
+        drawWaterRipple(ctx, x, y, cellWidth, cellHeight, seed);
       }
     }
   }
 
   ctx.restore();
+}
+
+function drawForestDetail(ctx, x, y, cellWidth, cellHeight, seed, detail) {
+  if (seed < 0.42 && detail !== "detailed") return;
+
+  const px = x * cellWidth + cellWidth * (0.28 + seed * 0.42);
+  const py = y * cellHeight + cellHeight * (0.24 + (1 - seed) * 0.46);
+  const size = Math.max(
+    1.4,
+    Math.min(cellWidth, cellHeight) * (0.18 + seed * 0.08),
+  );
+
+  ctx.beginPath();
+  ctx.fillStyle = "rgba(15, 70, 34, 0.72)";
+  ctx.arc(px, py, size * 1.35, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.fillStyle = "rgba(72, 155, 78, 0.5)";
+  ctx.arc(px + size * 0.55, py - size * 0.35, size * 0.78, 0, Math.PI * 2);
+  ctx.fill();
+
+  if (detail === "detailed") {
+    ctx.beginPath();
+    ctx.strokeStyle = "rgba(8, 30, 16, 0.55)";
+    ctx.lineWidth = 1;
+    ctx.moveTo(px, py + size * 1.2);
+    ctx.lineTo(px, py + size * 2.2);
+    ctx.stroke();
+  }
+}
+
+function drawFertileDetail(ctx, x, y, cellWidth, cellHeight, seed) {
+  const px = x * cellWidth + cellWidth * seed;
+  const py = y * cellHeight + cellHeight * (1 - seed);
+  const size = Math.max(1, Math.min(cellWidth, cellHeight) * 0.14);
+
+  ctx.beginPath();
+  ctx.fillStyle = "rgba(155, 255, 145, 0.28)";
+  ctx.arc(px, py, size, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawBarrenDetail(ctx, x, y, cellWidth, cellHeight, seed) {
+  const px = x * cellWidth + cellWidth * seed;
+  const py = y * cellHeight + cellHeight * (0.3 + seed * 0.4);
+  const size = Math.max(0.8, Math.min(cellWidth, cellHeight) * 0.12);
+
+  ctx.beginPath();
+  ctx.fillStyle = "rgba(130, 96, 58, 0.38)";
+  ctx.arc(px, py, size, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawWaterRipple(ctx, x, y, cellWidth, cellHeight, seed) {
+  const px = x * cellWidth;
+  const py = y * cellHeight + cellHeight * (0.35 + seed * 0.3);
+
+  ctx.beginPath();
+  ctx.strokeStyle = "rgba(140, 220, 255, 0.16)";
+  ctx.lineWidth = 1;
+  ctx.moveTo(px + cellWidth * 0.16, py);
+  ctx.quadraticCurveTo(
+    px + cellWidth * 0.5,
+    py - cellHeight * 0.12,
+    px + cellWidth * 0.84,
+    py,
+  );
+  ctx.stroke();
 }
 
 function drawAgents(ctx, world, cellWidth, cellHeight) {
@@ -371,6 +499,33 @@ function drawSeasonAtmosphere(ctx, world, seasonVisual, width, height) {
   ctx.restore();
 }
 
+function drawGrid(ctx, world, cellWidth, cellHeight, width, height) {
+  if (world.width > 130 || world.height > 90) return;
+
+  ctx.save();
+
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.045)";
+  ctx.lineWidth = 1;
+
+  for (let x = 0; x <= world.width; x++) {
+    const px = x * cellWidth;
+    ctx.beginPath();
+    ctx.moveTo(px, 0);
+    ctx.lineTo(px, height);
+    ctx.stroke();
+  }
+
+  for (let y = 0; y <= world.height; y++) {
+    const py = y * cellHeight;
+    ctx.beginPath();
+    ctx.moveTo(0, py);
+    ctx.lineTo(width, py);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
 function drawVignette(ctx, width, height) {
   const gradient = ctx.createRadialGradient(
     width / 2,
@@ -382,8 +537,13 @@ function drawVignette(ctx, width, height) {
   );
 
   gradient.addColorStop(0, "rgba(255, 255, 255, 0)");
-  gradient.addColorStop(1, "rgba(0, 0, 0, 0.36)");
+  gradient.addColorStop(1, "rgba(0, 0, 0, 0.34)");
 
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, width, height);
+}
+
+function pseudoRandom(x, y) {
+  const value = Math.sin(x * 127.1 + y * 311.7) * 43758.5453123;
+  return value - Math.floor(value);
 }

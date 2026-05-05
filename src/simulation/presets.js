@@ -3,6 +3,7 @@ export const DEFAULT_SETTINGS = {
   worldHeight: 64,
 
   renderDetail: "balanced",
+  showGrid: false,
 
   initialGrassDensity: 0.7,
   grassRegrowth: 0.42,

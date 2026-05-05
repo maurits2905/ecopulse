@@ -179,6 +179,13 @@ export default function SettingsPanel({ settings, setSettings }) {
     }));
   }
 
+  function toggleGrid() {
+    setSettings((current) => ({
+      ...current,
+      showGrid: !current.showGrid
+    }));
+  }
+
   function updateMapSize(sizeKey) {
     const size = MAP_SIZES[sizeKey];
 
@@ -252,6 +259,14 @@ export default function SettingsPanel({ settings, setSettings }) {
         Terrain {settings.terrainEnabled ? "enabled" : "disabled"}
       </button>
 
+      <button
+        type="button"
+        className={settings.showGrid ? "toggle-button active" : "toggle-button"}
+        onClick={toggleGrid}
+      >
+        Grid {settings.showGrid ? "visible" : "hidden"}
+      </button>
+
       <div className="settings-list">
         {SLIDERS.map((slider) => (
           <label className="slider-field" key={slider.key}>
@@ -272,7 +287,7 @@ export default function SettingsPanel({ settings, setSettings }) {
       </div>
 
       <p className="settings-note">
-        Changing sliders, map size or render detail affects the next reset. Bigger maps are heavier, so use performance mode for huge worlds.
+        Smooth terrain is now the default. Turn on grid mode if you want to inspect the underlying simulation cells.
       </p>
     </section>
   );
