@@ -196,7 +196,42 @@ const SLIDERS = [
     min: 0,
     max: 0.3,
     step: 0.01
-  }
+  },
+    {
+    key: "environmentalEventChance",
+    label: "Disturbance chance",
+    min: 0,
+    max: 0.004,
+    step: 0.00005
+  },
+  {
+    key: "environmentalEventCooldown",
+    label: "Disturbance cooldown",
+    min: 50,
+    max: 1000,
+    step: 25
+  },
+  {
+    key: "environmentalEventMinDuration",
+    label: "Min disturbance duration",
+    min: 50,
+    max: 800,
+    step: 25
+  },
+  {
+    key: "environmentalEventMaxDuration",
+    label: "Max disturbance duration",
+    min: 100,
+    max: 1200,
+    step: 25
+  },
+  {
+    key: "wildfireIntensity",
+    label: "Wildfire intensity",
+    min: 0.1,
+    max: 1,
+    step: 0.05
+  },
 ];
 
 function displayValue(value) {
@@ -254,6 +289,13 @@ export default function SettingsPanel({ settings, setSettings }) {
     setSettings((current) => ({
       ...current,
       migrationEnabled: !current.migrationEnabled
+    }));
+  }
+
+  function toggleEnvironmentalEvents() {
+    setSettings((current) => ({
+      ...current,
+      environmentalEventsEnabled: !current.environmentalEventsEnabled
     }));
   }
 
@@ -336,6 +378,14 @@ export default function SettingsPanel({ settings, setSettings }) {
         onClick={toggleMigration}
       >
         Migration {settings.migrationEnabled ? "enabled" : "disabled"}
+      </button>
+
+      <button
+        type="button"
+        className={settings.environmentalEventsEnabled ? "toggle-button active" : "toggle-button"}
+        onClick={toggleEnvironmentalEvents}
+      >
+        Disturbances {settings.environmentalEventsEnabled ? "enabled" : "disabled"}
       </button>
 
       <button

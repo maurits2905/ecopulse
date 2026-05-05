@@ -967,3 +967,71 @@ input[type="range"] {
     grid-template-columns: 1fr;
   }
 }
+
+.disturbance-panel {
+  overflow: hidden;
+}
+
+.disturbance-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.disturbance-item {
+  padding: 12px;
+  border: 1px solid rgba(233, 255, 243, 0.1);
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.disturbance-item.drought,
+.disturbance-item.coldSnap {
+  border-color: rgba(255, 194, 102, 0.28);
+}
+
+.disturbance-item.bloom {
+  border-color: rgba(130, 247, 173, 0.26);
+}
+
+.disturbance-item.preyDisease,
+.disturbance-item.predatorDisease,
+.disturbance-item.wildfire {
+  border-color: rgba(255, 107, 107, 0.3);
+}
+
+.disturbance-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.disturbance-top strong {
+  color: #e9fff3;
+  font-size: 0.9rem;
+}
+
+.disturbance-top span {
+  color: rgba(233, 255, 243, 0.5);
+  font-size: 0.76rem;
+}
+
+.disturbance-bar {
+  height: 7px;
+  margin-top: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.disturbance-bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 196, 102, 0.85),
+    rgba(255, 107, 107, 0.95)
+  );
+}

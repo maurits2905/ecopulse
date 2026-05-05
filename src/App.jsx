@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ControlPanel from "./components/ControlPanel";
+import DisturbancePanel from "./components/DisturbancePanel";
 import EventLog from "./components/EventLog";
 import EvolutionPanel from "./components/EvolutionPanel";
 import ExperimentPanel from "./components/ExperimentPanel";
@@ -126,8 +127,8 @@ export default function App() {
           <p className="eyebrow">EcoPulse</p>
           <h1>Emergent ecosystem simulator</h1>
           <p className="hero-text">
-            Grass grows, prey feed, predators hunt, inherited traits mutate, seasons shift and
-            terrain shapes where life can survive.
+            Grass grows, prey feed, predators hunt, inherited traits mutate, seasons shift,
+            migration changes pressure, and environmental events disturb the balance.
           </p>
         </div>
 
@@ -161,6 +162,7 @@ export default function App() {
           <StatsPanel stats={worldView.stats} world={worldView} />
           <InspectorPanel inspected={inspected} />
           <SeasonPanel stats={worldView.stats} />
+          <DisturbancePanel stats={worldView.stats} />
           <TerrainPanel stats={worldView.stats} />
           <EvolutionPanel stats={worldView.stats} />
           <ExperimentPanel

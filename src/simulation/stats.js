@@ -32,9 +32,17 @@ export function collectStats(world) {
       : world.predators.reduce((sum, predator) => sum + predator.energy, 0) /
         world.predators.length;
 
+  const activeEnvironmentalEvents = world.activeEnvironmentalEvents ?? [];
+
   let status = "Stable";
 
-  if (world.prey.length === 0 && world.predators.length === 0) {
+  if (activeEnvironmentalEvents.some((event) => event.kind === "wildfire")) {
+    status = "Wildfire";
+  } else if (
+    activeEnvironmentalEvents.some((event) => event.kind === "drought")
+  ) {
+    status = "Drought";
+  } else if (world.prey.length === 0 && world.predators.length === 0) {
     status = "Animal extinction";
   } else if (world.prey.length === 0) {
     status = "Prey extinct";
@@ -74,6 +82,7 @@ export function collectStats(world) {
       metabolism: averageTrait(world.predators, "metabolism"),
       reproductionEnergy: averageTrait(world.predators, "reproductionEnergy"),
     },
+    activeEnvironmentalEvents,
     terrain: getTerrainCounts(world),
     season,
     status,
@@ -116,7 +125,7 @@ export function evaluateEvents(world) {
     addEvent(
       world,
       "danger",
-      "Prey went extinct. Predators will starve unless the world is reset.",
+      "Prey went extinct. Predators will starve unless the world is reset or migration brings prey back.",
       "prey-extinct",
     );
   }
@@ -125,7 +134,7 @@ export function evaluateEvents(world) {
     addEvent(
       world,
       "warning",
-      "Predators went extinct. Prey may expand rapidly.",
+      "Predators went extinct. Prey may expand rapidly unless migration reintroduces predators.",
       "predator-extinct",
     );
   }

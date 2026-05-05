@@ -19,6 +19,16 @@ export const DEFAULT_SETTINGS = {
   riverAmount: 0.55,
   biomeScale: 24,
 
+  environmentalEventsEnabled: true,
+  environmentalEventChance: 0.00045,
+  environmentalEventCooldown: 260,
+  environmentalEventMinDuration: 220,
+  environmentalEventMaxDuration: 650,
+  maxActiveEnvironmentalEvents: 2,
+  preyDiseaseMortalityChance: 0.00045,
+  predatorDiseaseMortalityChance: 0.0007,
+  wildfireIntensity: 0.45,
+
   seasonsEnabled: true,
   seasonLength: 650,
 
@@ -357,6 +367,35 @@ export const PRESETS = {
       riverAmount: 0.55,
       biomeScale: 30,
       mutationRate: 0.12,
+    },
+  },
+
+  volatileWorld: {
+    label: "Volatile World",
+    description:
+      "Frequent droughts, blooms, disease and wildfire create a turbulent ecosystem.",
+    settings: {
+      environmentalEventsEnabled: true,
+      environmentalEventChance: 0.0012,
+      environmentalEventCooldown: 160,
+      environmentalEventMinDuration: 160,
+      environmentalEventMaxDuration: 520,
+      maxActiveEnvironmentalEvents: 2,
+      migrationEnabled: true,
+      preyMigrationChance: 0.0018,
+      predatorMigrationChance: 0.00055,
+      initialPrey: 120,
+      initialPredators: 20,
+      maxPrey: 700,
+      maxPredators: 210,
+      grassRegrowth: 0.42,
+      mutationRate: 0.13,
+      forestAmount: 0.14,
+      fertileAmount: 0.12,
+      barrenAmount: 0.08,
+      waterAmount: 0.03,
+      riverAmount: 0.6,
+      biomeScale: 28,
     },
   },
 

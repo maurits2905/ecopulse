@@ -1,4 +1,5 @@
 import { clamp } from "../utils/clamp";
+import { getEnvironmentalModifiers } from "./environmentalEvents";
 import { getCurrentSeason } from "./seasons";
 import { getTerrainInfo, TERRAIN_TYPES } from "./terrain";
 
@@ -11,6 +12,7 @@ export function getCell(world, x, y) {
 export function growGrass(world) {
   const { grassRegrowth, grassMax } = world.settings;
   const season = getCurrentSeason(world);
+  const environmental = getEnvironmentalModifiers(world);
 
   for (const cell of world.cells) {
     if (cell.terrain === TERRAIN_TYPES.WATER) {
@@ -22,6 +24,7 @@ export function growGrass(world) {
     const growth =
       grassRegrowth *
       season.grassModifier *
+      environmental.grassModifier *
       terrainInfo.grassModifier *
       cell.fertility *
       (1 - cell.grass / grassMax);

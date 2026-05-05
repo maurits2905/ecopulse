@@ -1,4 +1,9 @@
 import { clamp } from "../utils/clamp";
+import {
+  applyEnvironmentalEventEffects,
+  getEnvironmentalModifiers,
+  updateEnvironmentalEvents,
+} from "./environmentalEvents";
 import { eatGrassAt, getCell } from "./grass";
 import {
   countNearbyAgents,
@@ -20,6 +25,7 @@ function updatePrey(world) {
   const settings = world.settings;
   const newborns = [];
   const season = getCurrentSeason(world);
+  const environmental = getEnvironmentalModifiers(world);
 
   for (const prey of world.prey) {
     prey.age += 1;
@@ -91,7 +97,10 @@ function updatePrey(world) {
     const crowdingCost = localPrey * settings.preyCrowdingEnergyCost;
 
     prey.energy -=
-      settings.preyHunger * metabolism * season.hungerModifier +
+      settings.preyHunger *
+        metabolism *
+        season.hungerModifier *
+        environmental.hungerModifier +
       speedCost +
       visionCost +
       crowdingCost;
@@ -113,6 +122,7 @@ function updatePredators(world) {
   const settings = world.settings;
   const newborns = [];
   const season = getCurrentSeason(world);
+  const environmental = getEnvironmentalModifiers(world);
 
   for (const predator of world.predators) {
     predator.age += 1;
@@ -199,7 +209,10 @@ function updatePredators(world) {
     const crowdingCost = localPredators * settings.predatorCrowdingEnergyCost;
 
     predator.energy -=
-      settings.predatorHunger * metabolism * season.hungerModifier +
+      settings.predatorHunger *
+        metabolism *
+        season.hungerModifier *
+        environmental.hungerModifier +
       speedCost +
       visionCost +
       aggressionCost +
@@ -220,10 +233,12 @@ function updatePredators(world) {
 }
 
 export function updateWorld(world) {
+  updateEnvironmentalEvents(world);
   growGrass(world);
   updatePrey(world);
   updatePredators(world);
   applyMigration(world);
+  applyEnvironmentalEventEffects(world);
 
   world.tick += 1;
   world.stats = collectStats(world);
