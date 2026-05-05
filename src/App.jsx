@@ -3,6 +3,7 @@ import ControlPanel from "./components/ControlPanel";
 import EventLog from "./components/EventLog";
 import EvolutionPanel from "./components/EvolutionPanel";
 import PopulationChart from "./components/PopulationChart";
+import SeasonPanel from "./components/SeasonPanel";
 import SettingsPanel from "./components/SettingsPanel";
 import SimulationCanvas from "./components/SimulationCanvas";
 import StatsPanel from "./components/StatsPanel";
@@ -15,24 +16,33 @@ export default function App() {
   const [presetKey, setPresetKey] = useState("balanced");
   const [settings, setSettings] = useState(() => getPresetSettings("balanced"));
   const [running, setRunning] = useState(false);
-  const [speed, setSpeed] = useState(4);
+  const [speed, setSpeed] = useState(2);
   const [worldView, setWorldView] = useState(() => createWorld(getPresetSettings("balanced")));
 
   const worldRef = useRef(worldView);
   const animationRef = useRef(null);
   const frameCounterRef = useRef(0);
+  const tickAccumulatorRef = useRef(0);
 
   const selectedPreset = useMemo(() => PRESETS[presetKey], [presetKey]);
 
   const resetWorld = useCallback(() => {
+    tickAccumulatorRef.current = 0;
+
     const nextWorld = createWorld(settings);
     worldRef.current = nextWorld;
     setWorldView({ ...nextWorld });
   }, [settings]);
 
+  const stepWorld = useCallback(() => {
+    updateWorld(worldRef.current);
+    setWorldView({ ...worldRef.current });
+  }, []);
+
   useEffect(() => {
     const presetSettings = getPresetSettings(presetKey);
     setSettings(presetSettings);
+    tickAccumulatorRef.current = 0;
 
     const nextWorld = createWorld(presetSettings);
     worldRef.current = nextWorld;
@@ -42,13 +52,18 @@ export default function App() {
   useEffect(() => {
     function loop() {
       if (running) {
-        for (let i = 0; i < speed; i++) {
+        tickAccumulatorRef.current += speed;
+
+        let updates = 0;
+        while (tickAccumulatorRef.current >= 1 && updates < 20) {
           updateWorld(worldRef.current);
+          tickAccumulatorRef.current -= 1;
+          updates += 1;
         }
 
         frameCounterRef.current += 1;
 
-        if (frameCounterRef.current % 2 === 0) {
+        if (frameCounterRef.current % 2 === 0 || speed < 1) {
           setWorldView({ ...worldRef.current });
         }
       }
@@ -70,8 +85,8 @@ export default function App() {
           <p className="eyebrow">EcoPulse</p>
           <h1>Emergent ecosystem simulator</h1>
           <p className="hero-text">
-            Grass grows, prey feed, predators hunt, and inherited traits mutate through generations.
-            Simple rules create population waves, collapse, recovery, extinction and artificial evolution.
+            Grass grows, prey feed, predators hunt, inherited traits mutate, and seasonal pressure
+            changes the balance between survival, collapse and recovery.
           </p>
         </div>
 
@@ -94,6 +109,7 @@ export default function App() {
             presetKey={presetKey}
             setPresetKey={setPresetKey}
             onReset={resetWorld}
+            onStep={stepWorld}
           />
 
           <PopulationChart history={worldView.history} />
@@ -102,6 +118,7 @@ export default function App() {
 
         <aside className="side-column">
           <StatsPanel stats={worldView.stats} />
+          <SeasonPanel stats={worldView.stats} />
           <EvolutionPanel stats={worldView.stats} />
           <SettingsPanel settings={settings} setSettings={setSettings} />
           <EventLog events={worldView.events} />

@@ -1,4 +1,5 @@
 import { clamp } from "../utils/clamp";
+import { getCurrentSeason } from "./seasons";
 
 export function getCell(world, x, y) {
   const cx = clamp(Math.floor(x), 0, world.width - 1);
@@ -8,9 +9,15 @@ export function getCell(world, x, y) {
 
 export function growGrass(world) {
   const { grassRegrowth, grassMax } = world.settings;
+  const season = getCurrentSeason(world);
 
   for (const cell of world.cells) {
-    const growth = grassRegrowth * cell.fertility * (1 - cell.grass / grassMax);
+    const growth =
+      grassRegrowth *
+      season.grassModifier *
+      cell.fertility *
+      (1 - cell.grass / grassMax);
+
     cell.grass = clamp(cell.grass + growth, 0, grassMax);
   }
 }

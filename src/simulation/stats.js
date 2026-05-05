@@ -1,3 +1,5 @@
+import { getCurrentSeason } from "./seasons";
+
 function averageTrait(agents, key) {
   if (agents.length === 0) return 0;
   return (
@@ -15,6 +17,7 @@ function averageGeneration(agents) {
 export function collectStats(world) {
   const grassTotal = world.cells.reduce((sum, cell) => sum + cell.grass, 0);
   const grassCapacity = world.cells.length * world.settings.grassMax;
+  const season = getCurrentSeason(world);
 
   const preyEnergy =
     world.prey.length === 0
@@ -36,6 +39,8 @@ export function collectStats(world) {
     status = "Prey extinct";
   } else if (world.predators.length === 0) {
     status = "Predators extinct";
+  } else if (season.key === "winter" && grassTotal / grassCapacity < 0.28) {
+    status = "Winter stress";
   } else if (grassTotal / grassCapacity < 0.18) {
     status = "Overgrazing";
   } else if (world.predators.length > world.prey.length * 0.7) {
@@ -68,6 +73,7 @@ export function collectStats(world) {
       metabolism: averageTrait(world.predators, "metabolism"),
       reproductionEnergy: averageTrait(world.predators, "reproductionEnergy"),
     },
+    season,
     status,
   };
 }
@@ -102,6 +108,7 @@ export function addEvent(world, type, message, flagKey = null) {
 
 export function evaluateEvents(world) {
   const stats = world.stats;
+  const season = stats.season;
 
   if (stats.prey === 0) {
     addEvent(
@@ -172,6 +179,24 @@ export function evaluateEvents(world) {
       "info",
       "Low-metabolism prey are becoming more common.",
       "prey-efficient",
+    );
+  }
+
+  if (season.key === "winter" && season.progress < 0.02) {
+    addEvent(
+      world,
+      "warning",
+      "Winter has started. Grass growth is low and hunger pressure is higher.",
+      `winter-${Math.floor(world.tick / world.settings.seasonLength)}`,
+    );
+  }
+
+  if (season.key === "spring" && season.progress < 0.02 && world.tick > 20) {
+    addEvent(
+      world,
+      "info",
+      "Spring has returned. Grass recovery is accelerating.",
+      `spring-${Math.floor(world.tick / world.settings.seasonLength)}`,
     );
   }
 }

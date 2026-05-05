@@ -9,11 +9,13 @@ import {
 } from "./movement";
 import { growGrass } from "./grass";
 import { maybeReproducePredator, maybeReproducePrey } from "./reproduction";
+import { getCurrentSeason } from "./seasons";
 import { collectStats, evaluateEvents, pushHistory } from "./stats";
 
 function updatePrey(world) {
   const settings = world.settings;
   const newborns = [];
+  const season = getCurrentSeason(world);
 
   for (const prey of world.prey) {
     prey.age += 1;
@@ -61,7 +63,10 @@ function updatePrey(world) {
 
     const speedCost = speed * 0.12;
     const visionCost = vision * 0.006;
-    prey.energy -= settings.preyHunger * metabolism + speedCost + visionCost;
+    prey.energy -=
+      settings.preyHunger * metabolism * season.hungerModifier +
+      speedCost +
+      visionCost;
 
     maybeReproducePrey(prey, world, newborns);
 
@@ -79,6 +84,7 @@ function updatePrey(world) {
 function updatePredators(world) {
   const settings = world.settings;
   const newborns = [];
+  const season = getCurrentSeason(world);
 
   for (const predator of world.predators) {
     predator.age += 1;
@@ -130,7 +136,7 @@ function updatePredators(world) {
     const aggressionCost = aggression * 0.12;
 
     predator.energy -=
-      settings.predatorHunger * metabolism +
+      settings.predatorHunger * metabolism * season.hungerModifier +
       speedCost +
       visionCost +
       aggressionCost;

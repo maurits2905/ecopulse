@@ -552,3 +552,143 @@ input[type="range"] {
     grid-column: auto;
   }
 }
+
+.speed-select select {
+  min-width: 110px;
+}
+
+.toggle-button {
+  width: 100%;
+  margin-top: 14px;
+  border: 1px solid rgba(233, 255, 243, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(233, 255, 243, 0.72);
+  border-radius: 16px;
+  padding: 12px 14px;
+  font-weight: 800;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    color 160ms ease;
+}
+
+.toggle-button.active {
+  border-color: rgba(130, 247, 173, 0.34);
+  background: rgba(130, 247, 173, 0.1);
+  color: #e9fff3;
+}
+
+.season-panel {
+  position: relative;
+  overflow: hidden;
+}
+
+.season-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.16;
+}
+
+.season-spring::before {
+  background: radial-gradient(
+    circle at top right,
+    rgba(130, 247, 173, 0.9),
+    transparent 58%
+  );
+}
+
+.season-summer::before {
+  background: radial-gradient(
+    circle at top right,
+    rgba(255, 217, 128, 0.85),
+    transparent 58%
+  );
+}
+
+.season-autumn::before {
+  background: radial-gradient(
+    circle at top right,
+    rgba(255, 144, 76, 0.85),
+    transparent 58%
+  );
+}
+
+.season-winter::before {
+  background: radial-gradient(
+    circle at top right,
+    rgba(142, 188, 255, 0.9),
+    transparent 58%
+  );
+}
+
+.season-description {
+  position: relative;
+  margin: 12px 0 0;
+  color: rgba(233, 255, 243, 0.68);
+  line-height: 1.5;
+  font-size: 0.9rem;
+}
+
+.season-progress {
+  position: relative;
+  display: grid;
+  gap: 9px;
+  margin-top: 16px;
+}
+
+.season-progress > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  color: rgba(233, 255, 243, 0.62);
+  font-size: 0.82rem;
+}
+
+.season-progress strong {
+  color: #e9fff3;
+}
+
+.season-bar {
+  height: 9px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.season-bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    rgba(130, 247, 173, 0.78),
+    rgba(142, 188, 255, 0.86)
+  );
+}
+
+.season-effects {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.season-effects div {
+  padding: 12px;
+  border: 1px solid rgba(233, 255, 243, 0.1);
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.season-effects span {
+  display: block;
+  margin-bottom: 8px;
+  color: rgba(233, 255, 243, 0.5);
+  font-size: 0.75rem;
+}
+
+.season-effects strong {
+  font-size: 1.1rem;
+}

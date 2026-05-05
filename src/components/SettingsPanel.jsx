@@ -28,6 +28,13 @@ const SLIDERS = [
     step: 0.05
   },
   {
+    key: "seasonLength",
+    label: "Season length",
+    min: 250,
+    max: 1400,
+    step: 50
+  },
+  {
     key: "preyHunger",
     label: "Prey hunger",
     min: 0.1,
@@ -92,12 +99,27 @@ export default function SettingsPanel({ settings, setSettings }) {
     }));
   }
 
+  function toggleSeasons() {
+    setSettings((current) => ({
+      ...current,
+      seasonsEnabled: !current.seasonsEnabled
+    }));
+  }
+
   return (
     <section className="panel settings-panel">
       <div className="panel-heading">
         <p className="eyebrow">Experiment controls</p>
         <h2>World parameters</h2>
       </div>
+
+      <button
+        type="button"
+        className={settings.seasonsEnabled ? "toggle-button active" : "toggle-button"}
+        onClick={toggleSeasons}
+      >
+        Seasons {settings.seasonsEnabled ? "enabled" : "disabled"}
+      </button>
 
       <div className="settings-list">
         {SLIDERS.map((slider) => (
@@ -119,7 +141,7 @@ export default function SettingsPanel({ settings, setSettings }) {
       </div>
 
       <p className="settings-note">
-        Changing sliders affects the next reset. Mutation affects how much offspring can differ from their parents.
+        Changing sliders affects the next reset. Seasons change grass growth and hunger pressure over time.
       </p>
     </section>
   );

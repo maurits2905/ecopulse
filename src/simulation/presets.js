@@ -8,6 +8,9 @@ export const DEFAULT_SETTINGS = {
   grassBite: 28,
   grassEnergy: 1.15,
 
+  seasonsEnabled: true,
+  seasonLength: 650,
+
   initialPrey: 110,
   initialPredators: 24,
 
@@ -94,7 +97,7 @@ export const PRESETS = {
 
   harshWorld: {
     label: "Harsh World",
-    description: "Grass grows slowly. Energy efficiency matters.",
+    description: "Grass grows slowly. Winter can become dangerous.",
     settings: {
       initialGrassDensity: 0.52,
       grassRegrowth: 0.18,
@@ -113,6 +116,20 @@ export const PRESETS = {
       predatorReproductionChance: 0.04,
       initialPrey: 145,
       initialPredators: 28,
+    },
+  },
+
+  longWinter: {
+    label: "Long Winter",
+    description:
+      "Longer seasons and harsh winter pressure test survival traits.",
+    settings: {
+      seasonLength: 950,
+      grassRegrowth: 0.35,
+      initialGrassDensity: 0.62,
+      preyHunger: 0.48,
+      predatorHunger: 0.78,
+      mutationRate: 0.12,
     },
   },
 
