@@ -721,3 +721,100 @@ input[type="range"] {
     font-size: 0.65rem;
   }
 }
+
+.terrain-panel {
+  overflow: hidden;
+}
+
+.terrain-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.terrain-row {
+  display: grid;
+  gap: 7px;
+}
+
+.terrain-row-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: rgba(233, 255, 243, 0.68);
+  font-size: 0.82rem;
+}
+
+.terrain-row-top span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.terrain-row-top strong {
+  color: #e9fff3;
+}
+
+.terrain-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.08);
+}
+
+.terrain-swatch.grassland {
+  background: #3ba75d;
+}
+
+.terrain-swatch.fertile {
+  background: #78ef83;
+}
+
+.terrain-swatch.forest {
+  background: #1f6b38;
+}
+
+.terrain-swatch.barren {
+  background: #8f6a42;
+}
+
+.terrain-swatch.water {
+  background: #26799f;
+}
+
+.terrain-bar {
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.terrain-bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+}
+
+.terrain-bar i.grassland {
+  background: #3ba75d;
+}
+
+.terrain-bar i.fertile {
+  background: #78ef83;
+}
+
+.terrain-bar i.forest {
+  background: #1f6b38;
+}
+
+.terrain-bar i.barren {
+  background: #8f6a42;
+}
+
+.terrain-bar i.water {
+  background: #26799f;
+}
+
+.toggle-button + .toggle-button {
+  margin-top: 10px;
+}

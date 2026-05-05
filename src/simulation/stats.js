@@ -1,4 +1,5 @@
 import { getCurrentSeason } from "./seasons";
+import { getTerrainCounts } from "./terrain";
 
 function averageTrait(agents, key) {
   if (agents.length === 0) return 0;
@@ -73,6 +74,7 @@ export function collectStats(world) {
       metabolism: averageTrait(world.predators, "metabolism"),
       reproductionEnergy: averageTrait(world.predators, "reproductionEnergy"),
     },
+    terrain: getTerrainCounts(world),
     season,
     status,
   };
@@ -197,6 +199,29 @@ export function evaluateEvents(world) {
       "info",
       "Spring has returned. Grass recovery is accelerating.",
       `spring-${Math.floor(world.tick / world.settings.seasonLength)}`,
+    );
+  }
+
+  const total =
+    Object.values(stats.terrain).reduce((sum, value) => sum + value, 0) || 1;
+  const forestRatio = stats.terrain.forest / total;
+  const waterRatio = stats.terrain.water / total;
+
+  if (forestRatio > 0.18) {
+    addEvent(
+      world,
+      "info",
+      "Forest cover is creating refuge zones for prey.",
+      "forest-refuge",
+    );
+  }
+
+  if (waterRatio > 0.06) {
+    addEvent(
+      world,
+      "info",
+      "Water is fragmenting the map into smaller movement zones.",
+      "water-fragmentation",
     );
   }
 }

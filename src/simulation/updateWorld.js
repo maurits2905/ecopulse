@@ -1,15 +1,17 @@
 import { clamp } from "../utils/clamp";
-import { eatGrassAt } from "./grass";
+import { eatGrassAt, getCell } from "./grass";
 import {
   findBestGrassDirection,
   findNearestAgent,
-  keepInBounds,
+  findNearestVisiblePrey,
+  keepInBoundsAndTerrain,
   normalize,
   randomDirection,
 } from "./movement";
 import { growGrass } from "./grass";
 import { maybeReproducePredator, maybeReproducePrey } from "./reproduction";
 import { getCurrentSeason } from "./seasons";
+import { getTerrainInfo } from "./terrain";
 import { collectStats, evaluateEvents, pushHistory } from "./stats";
 
 function updatePrey(world) {
@@ -25,6 +27,9 @@ function updatePrey(world) {
     const speed = prey.traits.speed;
     const caution = prey.traits.caution;
     const metabolism = prey.traits.metabolism;
+
+    const previousX = prey.x;
+    const previousY = prey.y;
 
     const nearestPredator = findNearestAgent(
       prey,
@@ -51,10 +56,14 @@ function updatePrey(world) {
 
     movement = normalize(movement);
 
-    prey.x += movement.x * speed;
-    prey.y += movement.y * speed;
+    const currentCell = getCell(world, prey.x, prey.y);
+    const currentTerrain = getTerrainInfo(currentCell.terrain);
+    const terrainSlowdown = currentTerrain.shelter > 0 ? 0.88 : 1;
 
-    keepInBounds(prey, world);
+    prey.x += movement.x * speed * terrainSlowdown;
+    prey.y += movement.y * speed * terrainSlowdown;
+
+    keepInBoundsAndTerrain(prey, world, previousX, previousY);
 
     const eaten = eatGrassAt(world, prey.x, prey.y, settings.grassBite);
     const cautionFeedingCost = 1 - Math.min(0.22, caution * 0.06);
@@ -95,7 +104,15 @@ function updatePredators(world) {
     const aggression = predator.traits.aggression;
     const metabolism = predator.traits.metabolism;
 
-    const nearestPrey = findNearestAgent(predator, world.prey, vision);
+    const previousX = predator.x;
+    const previousY = predator.y;
+
+    const nearestPrey = findNearestVisiblePrey(
+      predator,
+      world.prey,
+      world,
+      vision,
+    );
     const wander = randomDirection(world.random);
 
     let movement = {
@@ -115,15 +132,24 @@ function updatePredators(world) {
 
     movement = normalize(movement);
 
-    predator.x += movement.x * speed;
-    predator.y += movement.y * speed;
+    const currentCell = getCell(world, predator.x, predator.y);
+    const currentTerrain = getTerrainInfo(currentCell.terrain);
+    const terrainSlowdown = currentTerrain.shelter > 0 ? 0.82 : 1;
 
-    keepInBounds(predator, world);
+    predator.x += movement.x * speed * terrainSlowdown;
+    predator.y += movement.y * speed * terrainSlowdown;
+
+    keepInBoundsAndTerrain(predator, world, previousX, previousY);
+
+    const predatorCell = getCell(world, predator.x, predator.y);
+    const shelter = getTerrainInfo(predatorCell.terrain).shelter;
+    const effectiveKillRadius =
+      settings.predatorKillRadius * (1 - shelter * 0.35);
 
     const preyAfterMove = findNearestAgent(
       predator,
       world.prey,
-      settings.predatorKillRadius,
+      effectiveKillRadius,
     );
 
     if (preyAfterMove.agent) {

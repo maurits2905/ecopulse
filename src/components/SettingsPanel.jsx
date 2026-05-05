@@ -28,6 +28,34 @@ const SLIDERS = [
     step: 0.05
   },
   {
+    key: "waterAmount",
+    label: "Water amount",
+    min: 0,
+    max: 0.12,
+    step: 0.005
+  },
+  {
+    key: "forestAmount",
+    label: "Forest amount",
+    min: 0,
+    max: 0.3,
+    step: 0.01
+  },
+  {
+    key: "barrenAmount",
+    label: "Barren amount",
+    min: 0,
+    max: 0.25,
+    step: 0.01
+  },
+  {
+    key: "fertileAmount",
+    label: "Fertile amount",
+    min: 0,
+    max: 0.25,
+    step: 0.01
+  },
+  {
     key: "seasonLength",
     label: "Season length",
     min: 250,
@@ -87,7 +115,7 @@ const SLIDERS = [
 
 function displayValue(value) {
   if (typeof value !== "number") return value;
-  if (value < 2 && value % 1 !== 0) return value.toFixed(2);
+  if (value < 2 && value % 1 !== 0) return value.toFixed(3).replace(/0$/, "");
   return Math.round(value * 100) / 100;
 }
 
@@ -106,6 +134,13 @@ export default function SettingsPanel({ settings, setSettings }) {
     }));
   }
 
+  function toggleTerrain() {
+    setSettings((current) => ({
+      ...current,
+      terrainEnabled: !current.terrainEnabled
+    }));
+  }
+
   return (
     <section className="panel settings-panel">
       <div className="panel-heading">
@@ -119,6 +154,14 @@ export default function SettingsPanel({ settings, setSettings }) {
         onClick={toggleSeasons}
       >
         Seasons {settings.seasonsEnabled ? "enabled" : "disabled"}
+      </button>
+
+      <button
+        type="button"
+        className={settings.terrainEnabled ? "toggle-button active" : "toggle-button"}
+        onClick={toggleTerrain}
+      >
+        Terrain {settings.terrainEnabled ? "enabled" : "disabled"}
       </button>
 
       <div className="settings-list">
@@ -141,7 +184,7 @@ export default function SettingsPanel({ settings, setSettings }) {
       </div>
 
       <p className="settings-note">
-        Changing sliders affects the next reset. Seasons change grass growth and hunger pressure over time.
+        Changing sliders affects the next reset. Terrain changes grass growth, shelter and movement.
       </p>
     </section>
   );

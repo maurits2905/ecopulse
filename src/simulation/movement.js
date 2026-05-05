@@ -1,5 +1,6 @@
 import { clamp } from "../utils/clamp";
 import { getCell } from "./grass";
+import { getTerrainInfo, isBlockedTerrain } from "./terrain";
 
 export function distance(a, b) {
   const dx = a.x - b.x;
@@ -25,6 +26,33 @@ export function keepInBounds(agent, world) {
   agent.y = clamp(agent.y, 0, world.height - 0.001);
 }
 
+export function keepInBoundsAndTerrain(agent, world, previousX, previousY) {
+  keepInBounds(agent, world);
+
+  const cell = getCell(world, agent.x, agent.y);
+
+  if (!isBlockedTerrain(cell.terrain)) {
+    return;
+  }
+
+  agent.x = previousX;
+  agent.y = previousY;
+
+  const escape = randomDirection(world.random);
+  agent.x += escape.x * 0.65;
+  agent.y += escape.y * 0.65;
+
+  keepInBounds(agent, world);
+
+  const escapeCell = getCell(world, agent.x, agent.y);
+
+  if (isBlockedTerrain(escapeCell.terrain)) {
+    agent.x = previousX;
+    agent.y = previousY;
+    keepInBounds(agent, world);
+  }
+}
+
 export function findNearestAgent(source, agents, maxDistance) {
   let nearest = null;
   let nearestDistance = Infinity;
@@ -36,6 +64,32 @@ export function findNearestAgent(source, agents, maxDistance) {
 
     if (d < nearestDistance && d <= maxDistance) {
       nearest = target;
+      nearestDistance = d;
+    }
+  }
+
+  return {
+    agent: nearest,
+    distance: nearestDistance,
+  };
+}
+
+export function findNearestVisiblePrey(predator, preyList, world, maxDistance) {
+  let nearest = null;
+  let nearestDistance = Infinity;
+
+  for (const prey of preyList) {
+    if (prey.dead) continue;
+
+    const d = distance(predator, prey);
+    if (d > maxDistance || d >= nearestDistance) continue;
+
+    const preyCell = getCell(world, prey.x, prey.y);
+    const shelter = getTerrainInfo(preyCell.terrain).shelter;
+    const visibilityDistance = maxDistance * (1 - shelter * 0.55);
+
+    if (d <= visibilityDistance) {
+      nearest = prey;
       nearestDistance = d;
     }
   }
@@ -68,7 +122,11 @@ export function findBestGrassDirection(agent, world, vision) {
       if (d > vision || d === 0) continue;
 
       const cell = getCell(world, x, y);
-      const score = cell.grass / (d + 1);
+      if (isBlockedTerrain(cell.terrain)) continue;
+
+      const terrainInfo = getTerrainInfo(cell.terrain);
+      const shelterBonus = terrainInfo.shelter * 16;
+      const score = (cell.grass + shelterBonus) / (d + 1);
 
       if (score > bestScore) {
         bestScore = score;

@@ -7,6 +7,7 @@ import SeasonPanel from "./components/SeasonPanel";
 import SettingsPanel from "./components/SettingsPanel";
 import SimulationCanvas from "./components/SimulationCanvas";
 import StatsPanel from "./components/StatsPanel";
+import TerrainPanel from "./components/TerrainPanel";
 import TraitChart from "./components/TraitChart";
 import { createWorld } from "./simulation/createWorld";
 import { getPresetSettings, PRESETS } from "./simulation/presets";
@@ -85,8 +86,8 @@ export default function App() {
           <p className="eyebrow">EcoPulse</p>
           <h1>Emergent ecosystem simulator</h1>
           <p className="hero-text">
-            Grass grows, prey feed, predators hunt, inherited traits mutate, and seasonal pressure
-            changes the balance between survival, collapse and recovery.
+            Grass grows, prey feed, predators hunt, inherited traits mutate, seasons shift and
+            terrain shapes where life can survive.
           </p>
         </div>
 
@@ -119,6 +120,7 @@ export default function App() {
         <aside className="side-column">
           <StatsPanel stats={worldView.stats} />
           <SeasonPanel stats={worldView.stats} />
+          <TerrainPanel stats={worldView.stats} />
           <EvolutionPanel stats={worldView.stats} />
           <SettingsPanel settings={settings} setSettings={setSettings} />
           <EventLog events={worldView.events} />

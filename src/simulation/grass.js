@@ -1,5 +1,6 @@
 import { clamp } from "../utils/clamp";
 import { getCurrentSeason } from "./seasons";
+import { getTerrainInfo, TERRAIN_TYPES } from "./terrain";
 
 export function getCell(world, x, y) {
   const cx = clamp(Math.floor(x), 0, world.width - 1);
@@ -12,9 +13,16 @@ export function growGrass(world) {
   const season = getCurrentSeason(world);
 
   for (const cell of world.cells) {
+    if (cell.terrain === TERRAIN_TYPES.WATER) {
+      cell.grass = 0;
+      continue;
+    }
+
+    const terrainInfo = getTerrainInfo(cell.terrain);
     const growth =
       grassRegrowth *
       season.grassModifier *
+      terrainInfo.grassModifier *
       cell.fertility *
       (1 - cell.grass / grassMax);
 
@@ -24,6 +32,11 @@ export function growGrass(world) {
 
 export function eatGrassAt(world, x, y, amount) {
   const cell = getCell(world, x, y);
+
+  if (cell.terrain === TERRAIN_TYPES.WATER) {
+    return 0;
+  }
+
   const eaten = Math.min(cell.grass, amount);
   cell.grass -= eaten;
   return eaten;

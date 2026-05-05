@@ -2,14 +2,32 @@ import { clamp } from "../utils/clamp";
 import { createRandom } from "../utils/random";
 import { TRAIT_LIMITS } from "./presets";
 import { collectStats } from "./stats";
+import { chooseTerrain, getTerrainInfo, TERRAIN_TYPES } from "./terrain";
 
 let nextAgentId = 1;
 
-function createCell(random, settings) {
+function createCell(random, settings, x, y) {
+  const terrain = chooseTerrain(random, settings, x, y);
+  const terrainInfo = getTerrainInfo(terrain);
+
+  if (terrain === TERRAIN_TYPES.WATER) {
+    return {
+      terrain,
+      grass: 0,
+      fertility: 0,
+    };
+  }
+
   const hasGrass = random.chance(settings.initialGrassDensity);
-  const fertility = random.range(0.65, 1.35);
+  const baseFertility = random.range(0.65, 1.35);
+  const fertility = clamp(
+    baseFertility * terrainInfo.fertilityModifier,
+    0.2,
+    2.1,
+  );
 
   return {
+    terrain,
     grass: hasGrass ? random.range(25, settings.grassMax) : random.range(0, 16),
     fertility,
   };
@@ -181,12 +199,31 @@ function mutatePredatorTraits(parent, world) {
   };
 }
 
-function createPrey(random, settings) {
+function getRandomLandPosition(random, cells, settings) {
+  for (let attempt = 0; attempt < 400; attempt++) {
+    const x = random.range(0, settings.worldWidth);
+    const y = random.range(0, settings.worldHeight);
+    const cell = cells[Math.floor(y) * settings.worldWidth + Math.floor(x)];
+
+    if (cell?.terrain !== TERRAIN_TYPES.WATER) {
+      return { x, y };
+    }
+  }
+
+  return {
+    x: settings.worldWidth / 2,
+    y: settings.worldHeight / 2,
+  };
+}
+
+function createPrey(random, settings, cells) {
+  const position = getRandomLandPosition(random, cells, settings);
+
   return {
     id: nextAgentId++,
     type: "prey",
-    x: random.range(0, settings.worldWidth),
-    y: random.range(0, settings.worldHeight),
+    x: position.x,
+    y: position.y,
     energy: random.range(
       settings.preyStartEnergy * 0.65,
       settings.preyStartEnergy * 1.25,
@@ -199,12 +236,14 @@ function createPrey(random, settings) {
   };
 }
 
-function createPredator(random, settings) {
+function createPredator(random, settings, cells) {
+  const position = getRandomLandPosition(random, cells, settings);
+
   return {
     id: nextAgentId++,
     type: "predator",
-    x: random.range(0, settings.worldWidth),
-    y: random.range(0, settings.worldHeight),
+    x: position.x,
+    y: position.y,
     energy: random.range(
       settings.predatorStartEnergy * 0.75,
       settings.predatorStartEnergy * 1.3,
@@ -227,15 +266,15 @@ export function createWorld(settings) {
 
   for (let y = 0; y < settings.worldHeight; y++) {
     for (let x = 0; x < settings.worldWidth; x++) {
-      cells.push(createCell(random, settings));
+      cells.push(createCell(random, settings, x, y));
     }
   }
 
   const prey = Array.from({ length: settings.initialPrey }, () =>
-    createPrey(random, settings),
+    createPrey(random, settings, cells),
   );
   const predators = Array.from({ length: settings.initialPredators }, () =>
-    createPredator(random, settings),
+    createPredator(random, settings, cells),
   );
 
   const world = {
@@ -253,7 +292,7 @@ export function createWorld(settings) {
         tick: 0,
         type: "info",
         message:
-          "EcoPulse started. Traits now mutate through reproduction and survival pressure.",
+          "EcoPulse started. Terrain now shapes grass growth, movement and survival pressure.",
       },
     ],
     lastEventFlags: {},

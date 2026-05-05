@@ -29,7 +29,8 @@ export function drawWorld(canvas, world) {
   const seasonVisual = getSeasonVisualBlend(world);
 
   drawSeasonBackground(ctx, seasonVisual, viewWidth, viewHeight);
-  drawGrass(ctx, world, seasonVisual, cellWidth, cellHeight);
+  drawTerrainAndGrass(ctx, world, seasonVisual, cellWidth, cellHeight);
+  drawVegetationDetails(ctx, world, cellWidth, cellHeight);
   drawSeasonAtmosphere(ctx, world, seasonVisual, viewWidth, viewHeight);
   drawAgents(ctx, world, cellWidth, cellHeight);
   drawVignette(ctx, viewWidth, viewHeight);
@@ -71,7 +72,7 @@ function drawSeasonBackground(ctx, seasonVisual, width, height) {
   ctx.fillRect(0, 0, width, height);
 }
 
-function drawGrass(ctx, world, seasonVisual, cellWidth, cellHeight) {
+function drawTerrainAndGrass(ctx, world, seasonVisual, cellWidth, cellHeight) {
   const maxGrass = world.settings.grassMax;
   const tone = blendedTone(seasonVisual);
 
@@ -83,22 +84,47 @@ function drawGrass(ctx, world, seasonVisual, cellWidth, cellHeight) {
     for (let x = 0; x < world.width; x++) {
       const cell = world.cells[y * world.width + x];
       const amount = cell.grass / maxGrass;
-      const fertilityGlow = Math.min(1, cell.fertility / 1.35);
+      const terrain = cell.terrain ?? "grassland";
 
-      const red = Math.max(
-        0,
-        Math.min(255, Math.floor(8 + fertilityGlow * 16 + seasonalRedShift)),
-      );
-      const green = Math.max(
-        0,
-        Math.min(255, Math.floor(35 + amount * 145 + seasonalGreenShift)),
-      );
-      const blue = Math.max(
-        0,
-        Math.min(255, Math.floor(34 + amount * 40 + seasonalBlueShift)),
-      );
+      let red = 8;
+      let green = 35 + amount * 145;
+      let blue = 34 + amount * 40;
+      let alpha = 0.3 + amount * 0.68;
 
-      const alpha = 0.3 + amount * 0.68;
+      if (terrain === "fertile") {
+        red += 5;
+        green += 34;
+        blue += 7;
+      }
+
+      if (terrain === "forest") {
+        red -= 2;
+        green += 16;
+        blue -= 8;
+        alpha += 0.04;
+      }
+
+      if (terrain === "barren") {
+        red += 54;
+        green -= 18;
+        blue -= 14;
+        alpha = 0.48 + amount * 0.36;
+      }
+
+      if (terrain === "water") {
+        red = 12;
+        green = 52;
+        blue = 78;
+        alpha = 0.92;
+      } else {
+        red += seasonalRedShift;
+        green += seasonalGreenShift;
+        blue += seasonalBlueShift;
+      }
+
+      red = Math.max(0, Math.min(255, Math.floor(red)));
+      green = Math.max(0, Math.min(255, Math.floor(green)));
+      blue = Math.max(0, Math.min(255, Math.floor(blue)));
 
       ctx.fillStyle = `rgba(${red}, ${green}, ${blue}, ${alpha})`;
 
@@ -110,6 +136,77 @@ function drawGrass(ctx, world, seasonVisual, cellWidth, cellHeight) {
       );
     }
   }
+}
+
+function drawVegetationDetails(ctx, world, cellWidth, cellHeight) {
+  if (cellWidth < 5 || cellHeight < 5) return;
+
+  ctx.save();
+
+  for (let y = 0; y < world.height; y++) {
+    for (let x = 0; x < world.width; x++) {
+      const cell = world.cells[y * world.width + x];
+      const terrain = cell.terrain ?? "grassland";
+
+      if (terrain !== "forest" && terrain !== "water" && terrain !== "fertile")
+        continue;
+
+      const centerX = x * cellWidth + cellWidth * 0.5;
+      const centerY = y * cellHeight + cellHeight * 0.5;
+      const seed = (x * 17 + y * 31) % 10;
+
+      if (terrain === "forest" && seed < 4) {
+        ctx.beginPath();
+        ctx.fillStyle = "rgba(20, 78, 42, 0.78)";
+        ctx.arc(
+          centerX,
+          centerY,
+          Math.max(1.3, Math.min(cellWidth, cellHeight) * 0.22),
+          0,
+          Math.PI * 2,
+        );
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.fillStyle = "rgba(75, 155, 82, 0.52)";
+        ctx.arc(
+          centerX + cellWidth * 0.12,
+          centerY - cellHeight * 0.08,
+          Math.max(1, Math.min(cellWidth, cellHeight) * 0.13),
+          0,
+          Math.PI * 2,
+        );
+        ctx.fill();
+      }
+
+      if (terrain === "fertile" && seed < 2) {
+        ctx.beginPath();
+        ctx.fillStyle = "rgba(140, 255, 150, 0.35)";
+        ctx.arc(
+          centerX,
+          centerY,
+          Math.max(1, Math.min(cellWidth, cellHeight) * 0.12),
+          0,
+          Math.PI * 2,
+        );
+        ctx.fill();
+      }
+
+      if (terrain === "water" && seed < 3) {
+        ctx.beginPath();
+        ctx.strokeStyle = "rgba(120, 210, 255, 0.18)";
+        ctx.lineWidth = 1;
+        ctx.moveTo(x * cellWidth + cellWidth * 0.18, centerY);
+        ctx.lineTo(
+          x * cellWidth + cellWidth * 0.82,
+          centerY + Math.sin(seed) * 1.5,
+        );
+        ctx.stroke();
+      }
+    }
+  }
+
+  ctx.restore();
 }
 
 function drawAgents(ctx, world, cellWidth, cellHeight) {

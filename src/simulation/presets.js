@@ -8,6 +8,12 @@ export const DEFAULT_SETTINGS = {
   grassBite: 28,
   grassEnergy: 1.15,
 
+  terrainEnabled: true,
+  waterAmount: 0.035,
+  forestAmount: 0.09,
+  barrenAmount: 0.08,
+  fertileAmount: 0.08,
+
   seasonsEnabled: true,
   seasonLength: 650,
 
@@ -83,6 +89,8 @@ export const PRESETS = {
       initialPredators: 8,
       grassRegrowth: 0.34,
       preyReproductionChance: 0.06,
+      forestAmount: 0.06,
+      barrenAmount: 0.1,
     },
   },
 
@@ -94,6 +102,7 @@ export const PRESETS = {
       initialPredators: 42,
       predatorHunger: 0.72,
       predatorReproductionChance: 0.024,
+      forestAmount: 0.13,
     },
   },
 
@@ -106,6 +115,9 @@ export const PRESETS = {
       preyHunger: 0.52,
       predatorHunger: 0.82,
       mutationRate: 0.11,
+      barrenAmount: 0.18,
+      fertileAmount: 0.04,
+      waterAmount: 0.025,
     },
   },
 
@@ -118,6 +130,8 @@ export const PRESETS = {
       predatorReproductionChance: 0.04,
       initialPrey: 145,
       initialPredators: 28,
+      forestAmount: 0.11,
+      fertileAmount: 0.1,
     },
   },
 
@@ -132,6 +146,37 @@ export const PRESETS = {
       preyHunger: 0.48,
       predatorHunger: 0.78,
       mutationRate: 0.12,
+      forestAmount: 0.12,
+      barrenAmount: 0.12,
+    },
+  },
+
+  forestRefuge: {
+    label: "Forest Refuge",
+    description:
+      "More forest cover gives prey shelter and creates safer zones.",
+    settings: {
+      forestAmount: 0.22,
+      waterAmount: 0.025,
+      barrenAmount: 0.04,
+      fertileAmount: 0.12,
+      initialPrey: 120,
+      initialPredators: 30,
+    },
+  },
+
+  brokenLands: {
+    label: "Broken Lands",
+    description:
+      "More water and barren ground create fragmented survival pockets.",
+    settings: {
+      waterAmount: 0.075,
+      barrenAmount: 0.18,
+      fertileAmount: 0.06,
+      forestAmount: 0.08,
+      grassRegrowth: 0.3,
+      initialPrey: 100,
+      initialPredators: 20,
     },
   },
 
@@ -143,6 +188,8 @@ export const PRESETS = {
       grassRegrowth: 0.5,
       initialPrey: 70,
       initialPredators: 4,
+      fertileAmount: 0.12,
+      barrenAmount: 0.14,
     },
   },
 };
