@@ -102,6 +102,7 @@ export default function SimulationCanvas({ world, onInspect }) {
           <p className="eyebrow">Live simulation</p>
           <h2>Biosphere Field</h2>
         </div>
+
         <div className="legend">
           <span>
             <i className="dot grass" /> Grass
@@ -118,9 +119,9 @@ export default function SimulationCanvas({ world, onInspect }) {
       <canvas
         ref={canvasRef}
         className="simulation-canvas"
-        onMouseMove={handleInspect}
-        onClick={handleInspect}
-        onMouseLeave={clearInspect}
+        onPointerMove={handleInspect}
+        onPointerDown={handleInspect}
+        onPointerLeave={clearInspect}
       />
     </div>
   );

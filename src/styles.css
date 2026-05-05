@@ -1372,3 +1372,256 @@ input[type="range"] {
   font-size: 0.84rem;
   line-height: 1.45;
 }
+
+.mobile-summary-bar {
+  display: grid;
+  grid-template-columns: 1.4fr repeat(4, 1fr);
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(233, 255, 243, 0.1);
+  border-radius: 22px;
+  background:
+    linear-gradient(135deg, rgba(130, 247, 173, 0.08), transparent 46%),
+    rgba(0, 0, 0, 0.22);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.18);
+}
+
+.mobile-summary-bar div {
+  min-width: 0;
+  padding: 10px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.mobile-summary-bar span {
+  display: block;
+  margin-bottom: 5px;
+  color: rgba(233, 255, 243, 0.48);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.mobile-summary-bar strong {
+  display: block;
+  overflow: hidden;
+  color: #e9fff3;
+  font-size: 0.95rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.simulation-canvas {
+  touch-action: none;
+}
+
+.canvas-shell {
+  overflow: hidden;
+}
+
+.chart {
+  width: 100%;
+  min-height: 190px;
+}
+
+.control-panel {
+  position: relative;
+  z-index: 4;
+}
+
+.control-row {
+  align-items: stretch;
+}
+
+.control-row .button {
+  min-height: 44px;
+}
+
+.field.speed-field input[type="range"] {
+  width: 100%;
+}
+
+.side-column {
+  min-width: 0;
+}
+
+.main-column {
+  min-width: 0;
+}
+
+.panel {
+  min-width: 0;
+}
+
+@media (max-width: 1180px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .side-column {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .side-column > .settings-panel,
+  .side-column > .experiment-panel,
+  .side-column > .guide-panel {
+    grid-column: 1 / -1;
+  }
+
+  .canvas-shell {
+    position: relative;
+  }
+
+  .simulation-canvas {
+    height: min(68vh, 620px);
+  }
+}
+
+@media (max-width: 860px) {
+  .app {
+    padding: 18px;
+  }
+
+  .hero {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 20px;
+  }
+
+  .hero h1 {
+    font-size: clamp(2rem, 12vw, 3.4rem);
+  }
+
+  .hero-text {
+    font-size: 0.98rem;
+  }
+
+  .canvas-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .legend {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .control-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .control-row > .field.compact {
+    grid-column: 1 / -1;
+  }
+
+  .speed-field {
+    grid-column: 1 / -1;
+    min-width: 100%;
+  }
+
+  .mobile-summary-bar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mobile-summary-bar div:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .side-column {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-grid,
+  .inspector-grid,
+  .season-effects {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .settings-select-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-panel .panel-heading.horizontal {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .chart-legend {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 560px) {
+  .app {
+    padding: 12px;
+  }
+
+  .hero,
+  .panel,
+  .canvas-shell {
+    border-radius: 22px;
+  }
+
+  .canvas-shell {
+    padding: 14px;
+  }
+
+  .simulation-canvas {
+    height: 430px;
+    border-radius: 18px;
+  }
+
+  .control-row {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .control-row .button {
+    width: 100%;
+  }
+
+  .mobile-summary-bar {
+    grid-template-columns: 1fr;
+  }
+
+  .mobile-summary-bar div:first-child {
+    grid-column: auto;
+  }
+
+  .stat-grid,
+  .inspector-grid,
+  .season-effects,
+  .scenario-heading,
+  .objective-top,
+  .disturbance-top,
+  .timeline-meta {
+    grid-template-columns: 1fr;
+  }
+
+  .scenario-heading,
+  .objective-top,
+  .disturbance-top,
+  .timeline-meta {
+    display: grid;
+  }
+
+  .guide-tabs {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .experiment-actions {
+    flex-direction: column;
+  }
+
+  .timeline-marker-legend {
+    gap: 8px;
+  }
+
+  .speed-marks {
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+}

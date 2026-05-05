@@ -4,6 +4,7 @@ import DisturbancePanel from "./components/DisturbancePanel";
 import EventLog from "./components/EventLog";
 import EvolutionPanel from "./components/EvolutionPanel";
 import ExperimentPanel from "./components/ExperimentPanel";
+import GuidePanel from "./components/GuidePanel";
 import InspectorPanel from "./components/InspectorPanel";
 import PopulationChart from "./components/PopulationChart";
 import ScenarioPanel from "./components/ScenarioPanel";
@@ -14,6 +15,7 @@ import StatsPanel from "./components/StatsPanel";
 import TerrainPanel from "./components/TerrainPanel";
 import TimelinePanel from "./components/TimelinePanel";
 import TraitChart from "./components/TraitChart";
+import MobileSummaryBar from "./components/MobileSummaryBar";
 import { createWorld } from "./simulation/createWorld";
 import { getPresetSettings, PRESETS } from "./simulation/presets";
 import { evaluateScenario } from "./simulation/scenarios";
@@ -248,6 +250,8 @@ export default function App() {
             onStep={stepWorld}
           />
 
+          <MobileSummaryBar stats={worldView.stats} />
+
           <PopulationChart
             history={worldView.history}
             timelineEvents={worldView.timelineEvents}
@@ -258,6 +262,7 @@ export default function App() {
         <aside className="side-column">
           <StatsPanel stats={worldView.stats} world={worldView} />
           <ScenarioPanel scenario={scenario} />
+          <GuidePanel />
           <InspectorPanel inspected={inspected} />
           <SeasonPanel stats={worldView.stats} />
           <DisturbancePanel stats={worldView.stats} />
