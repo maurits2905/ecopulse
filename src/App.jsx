@@ -18,9 +18,14 @@ import { getPresetSettings, PRESETS } from "./simulation/presets";
 import { evaluateScenario } from "./simulation/scenarios";
 import { updateWorld } from "./simulation/updateWorld";
 import {
+  createExperimentPayload,
+  decodeExperimentFromUrl,
   deleteExperiment,
+  downloadExperimentJson,
+  encodeExperimentForUrl,
   loadSavedExperiments,
-  saveExperiment
+  saveExperiment,
+  validateExperimentPayload
 } from "./utils/experiments";
 
 export default function App() {
@@ -31,14 +36,46 @@ export default function App() {
   const [worldView, setWorldView] = useState(() => createWorld(getPresetSettings("balanced")));
   const [inspected, setInspected] = useState(null);
   const [savedExperiments, setSavedExperiments] = useState(() => loadSavedExperiments());
+  const [importText, setImportText] = useState("");
+  const [copyStatus, setCopyStatus] = useState("");
+  const [importStatus, setImportStatus] = useState("");
 
   const worldRef = useRef(worldView);
   const animationRef = useRef(null);
   const frameCounterRef = useRef(0);
   const tickAccumulatorRef = useRef(0);
+  const skipPresetResetRef = useRef(false);
 
   const selectedPreset = useMemo(() => PRESETS[presetKey], [presetKey]);
   const scenario = useMemo(() => evaluateScenario(presetKey, worldView), [presetKey, worldView]);
+
+  const currentExperimentPayload = useMemo(
+    () =>
+      createExperimentPayload({
+        name: `${selectedPreset.label} · ${settings.worldWidth}x${settings.worldHeight}`,
+        presetKey,
+        settings
+      }),
+    [presetKey, selectedPreset.label, settings]
+  );
+
+  const exportText = useMemo(
+    () => JSON.stringify(currentExperimentPayload, null, 2),
+    [currentExperimentPayload]
+  );
+
+  function loadSettingsAsWorld(nextPresetKey, nextSettings) {
+    skipPresetResetRef.current = true;
+    setRunning(false);
+    setPresetKey(nextPresetKey ?? "balanced");
+    setSettings(nextSettings);
+    tickAccumulatorRef.current = 0;
+    setInspected(null);
+
+    const nextWorld = createWorld(nextSettings);
+    worldRef.current = nextWorld;
+    setWorldView({ ...nextWorld });
+  }
 
   const resetWorld = useCallback(() => {
     tickAccumulatorRef.current = 0;
@@ -55,27 +92,13 @@ export default function App() {
   }, []);
 
   const handleSaveExperiment = useCallback(() => {
-    const name = `${selectedPreset.label} · ${settings.worldWidth}x${settings.worldHeight}`;
-
-    const next = saveExperiment({
-      name,
-      presetKey,
-      settings
-    });
-
+    const next = saveExperiment(currentExperimentPayload);
     setSavedExperiments(next);
-  }, [presetKey, selectedPreset.label, settings]);
+    setCopyStatus("Setup saved locally.");
+  }, [currentExperimentPayload]);
 
   const handleLoadExperiment = useCallback((experiment) => {
-    setRunning(false);
-    setPresetKey(experiment.presetKey ?? "balanced");
-    setSettings(experiment.settings);
-    tickAccumulatorRef.current = 0;
-    setInspected(null);
-
-    const nextWorld = createWorld(experiment.settings);
-    worldRef.current = nextWorld;
-    setWorldView({ ...nextWorld });
+    loadSettingsAsWorld(experiment.presetKey ?? "balanced", experiment.settings);
   }, []);
 
   const handleDeleteExperiment = useCallback((id) => {
@@ -83,7 +106,74 @@ export default function App() {
     setSavedExperiments(next);
   }, []);
 
+  const handleCopyJson = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(currentExperimentPayload, null, 2));
+      setCopyStatus("Setup JSON copied.");
+    } catch {
+      setCopyStatus("Could not copy JSON. Use the export text box instead.");
+    }
+  }, [currentExperimentPayload]);
+
+  const handleCopyShareUrl = useCallback(async () => {
+    try {
+      const encoded = encodeExperimentForUrl(currentExperimentPayload);
+      const url = new URL(window.location.href);
+
+      url.searchParams.set("experiment", encoded);
+
+      await navigator.clipboard.writeText(url.toString());
+      setCopyStatus("Share URL copied.");
+    } catch {
+      setCopyStatus("Could not copy share URL.");
+    }
+  }, [currentExperimentPayload]);
+
+  const handleDownloadJson = useCallback(() => {
+    downloadExperimentJson(currentExperimentPayload);
+    setCopyStatus("JSON downloaded.");
+  }, [currentExperimentPayload]);
+
+  const handleImportExperiment = useCallback(() => {
+    try {
+      const parsed = JSON.parse(importText);
+      const valid = validateExperimentPayload(parsed);
+
+      if (!valid) {
+        setImportStatus("Invalid EcoPulse setup JSON.");
+        return;
+      }
+
+      loadSettingsAsWorld(valid.presetKey ?? "balanced", valid.settings);
+      setImportStatus("Setup imported and loaded.");
+    } catch {
+      setImportStatus("Could not read JSON. Check that the pasted text is valid.");
+    }
+  }, [importText]);
+
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const encodedExperiment = params.get("experiment");
+
+    if (!encodedExperiment) return;
+
+    const sharedExperiment = decodeExperimentFromUrl(encodedExperiment);
+
+    if (!sharedExperiment) {
+      setImportStatus("Shared experiment URL could not be loaded.");
+      return;
+    }
+
+    loadSettingsAsWorld(sharedExperiment.presetKey ?? "balanced", sharedExperiment.settings);
+    setImportStatus("Shared experiment loaded from URL.");
+  }, []);
+
+  useEffect(() => {
+    if (skipPresetResetRef.current) {
+    skipPresetResetRef.current = false;
+    return;
+    }
+    
     const presetSettings = getPresetSettings(presetKey);
     setSettings(presetSettings);
     tickAccumulatorRef.current = 0;
@@ -171,9 +261,18 @@ export default function App() {
           <EvolutionPanel stats={worldView.stats} />
           <ExperimentPanel
             savedExperiments={savedExperiments}
+            exportText={exportText}
+            importText={importText}
+            setImportText={setImportText}
+            copyStatus={copyStatus}
+            importStatus={importStatus}
             onSaveExperiment={handleSaveExperiment}
             onLoadExperiment={handleLoadExperiment}
             onDeleteExperiment={handleDeleteExperiment}
+            onCopyJson={handleCopyJson}
+            onCopyShareUrl={handleCopyShareUrl}
+            onDownloadJson={handleDownloadJson}
+            onImportExperiment={handleImportExperiment}
           />
           <SettingsPanel settings={settings} setSettings={setSettings} />
           <EventLog events={worldView.events} />

@@ -1150,3 +1150,77 @@ input[type="range"] {
     rgba(255, 194, 102, 0.9)
   );
 }
+
+.experiment-action-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.mini-action,
+.advanced-toggle {
+  border: 1px solid rgba(233, 255, 243, 0.12);
+  background: rgba(255, 255, 255, 0.065);
+  color: #e9fff3;
+  border-radius: 14px;
+  padding: 10px 12px;
+  font-weight: 800;
+}
+
+.mini-action:hover,
+.advanced-toggle:hover {
+  border-color: rgba(130, 247, 173, 0.3);
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.advanced-toggle {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.experiment-status {
+  margin: 10px 0 0;
+  color: rgba(186, 255, 208, 0.78);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.experiment-advanced {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.experiment-textarea-label {
+  display: grid;
+  gap: 7px;
+}
+
+.experiment-textarea-label span {
+  color: rgba(233, 255, 243, 0.62);
+  font-size: 0.8rem;
+}
+
+.experiment-textarea-label textarea {
+  width: 100%;
+  resize: vertical;
+  border: 1px solid rgba(233, 255, 243, 0.12);
+  background: rgba(0, 0, 0, 0.28);
+  color: rgba(233, 255, 243, 0.86);
+  border-radius: 14px;
+  padding: 10px;
+  font:
+    0.76rem ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    monospace;
+  line-height: 1.45;
+}
+
+.experiment-textarea-label textarea:focus {
+  outline: none;
+  border-color: rgba(130, 247, 173, 0.34);
+}
