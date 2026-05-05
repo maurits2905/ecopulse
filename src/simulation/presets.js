@@ -269,6 +269,25 @@ export const PRESETS = {
     },
   },
 
+  plainWorld: {
+    label: "Plain World",
+    description:
+      "A simple open grassland with no water, rivers, forests or blocked terrain.",
+    settings: {
+      terrainEnabled: false,
+      waterAmount: 0,
+      riverAmount: 0,
+      forestAmount: 0,
+      barrenAmount: 0,
+      fertileAmount: 0,
+      biomeScale: 24,
+      initialGrassDensity: 0.72,
+      grassRegrowth: 0.42,
+      initialPrey: 120,
+      initialPredators: 24,
+    },
+  },
+
   recoveryLab: {
     label: "Recovery Lab",
     description: "Few predators, damaged grass, and a fragile recovery curve.",
