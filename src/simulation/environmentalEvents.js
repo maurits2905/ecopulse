@@ -1,4 +1,5 @@
 import { TERRAIN_TYPES } from "./terrain";
+import { pushWorldEvent } from "./eventBus";
 
 export const ENVIRONMENTAL_EVENT_TYPES = {
   drought: {
@@ -81,13 +82,14 @@ export function updateEnvironmentalEvents(world) {
 
   const info = ENVIRONMENTAL_EVENT_TYPES[event.kind];
 
-  world.events.unshift({
-    tick: world.tick,
-    type: info.type,
-    message: `${info.label} started: ${info.description}`,
-  });
-
-  world.events = world.events.slice(0, 12);
+  pushWorldEvent(
+    world,
+    info.type,
+    `${info.label} started: ${info.description}`,
+    {
+      category: "disturbance",
+    },
+  );
 }
 
 export function getEnvironmentalModifiers(world) {

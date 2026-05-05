@@ -1,5 +1,6 @@
 import { getCurrentSeason } from "./seasons";
 import { getTerrainCounts } from "./terrain";
+import { pushWorldEvent } from "./eventBus";
 
 function averageTrait(agents, key) {
   if (agents.length === 0) return 0;
@@ -101,20 +102,22 @@ export function pushHistory(world) {
   }
 }
 
-export function addEvent(world, type, message, flagKey = null) {
+export function addEvent(
+  world,
+  type,
+  message,
+  flagKey = null,
+  category = "system",
+) {
   if (flagKey && world.lastEventFlags[flagKey]) return;
 
-  world.events.unshift({
-    tick: world.tick,
-    type,
-    message,
+  pushWorldEvent(world, type, message, {
+    category,
   });
 
   if (flagKey) {
     world.lastEventFlags[flagKey] = true;
   }
-
-  world.events = world.events.slice(0, 12);
 }
 
 export function evaluateEvents(world) {

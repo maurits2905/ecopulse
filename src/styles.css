@@ -1224,3 +1224,151 @@ input[type="range"] {
   outline: none;
   border-color: rgba(130, 247, 173, 0.34);
 }
+
+.timeline-marker-line {
+  stroke-width: 1;
+  opacity: 0.36;
+}
+
+.timeline-marker-dot {
+  stroke: rgba(0, 0, 0, 0.65);
+  stroke-width: 1;
+}
+
+.marker-disturbance {
+  color: #ffb86b;
+  stroke: #ffb86b;
+  fill: #ffb86b;
+}
+
+.marker-migration {
+  color: #8ebcff;
+  stroke: #8ebcff;
+  fill: #8ebcff;
+}
+
+.marker-extinction {
+  color: #ff6b6b;
+  stroke: #ff6b6b;
+  fill: #ff6b6b;
+}
+
+.marker-season {
+  color: #82f7ad;
+  stroke: #82f7ad;
+  fill: #82f7ad;
+}
+
+.marker-evolution {
+  color: #d7fce8;
+  stroke: #d7fce8;
+  fill: #d7fce8;
+}
+
+.marker-system {
+  color: rgba(233, 255, 243, 0.6);
+  stroke: rgba(233, 255, 243, 0.6);
+  fill: rgba(233, 255, 243, 0.6);
+}
+
+.timeline-marker-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+  color: rgba(233, 255, 243, 0.56);
+  font-size: 0.74rem;
+}
+
+.timeline-marker-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.timeline-marker-legend span::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: currentColor;
+  box-shadow: 0 0 10px currentColor;
+}
+
+.timeline-panel {
+  overflow: hidden;
+}
+
+.timeline-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.timeline-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 14px 1fr;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(233, 255, 243, 0.1);
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.timeline-dot {
+  width: 9px;
+  height: 9px;
+  margin-top: 4px;
+  border-radius: 999px;
+  background: rgba(233, 255, 243, 0.6);
+  box-shadow: 0 0 12px rgba(233, 255, 243, 0.35);
+}
+
+.timeline-item.disturbance .timeline-dot {
+  background: #ffb86b;
+  box-shadow: 0 0 12px rgba(255, 184, 107, 0.42);
+}
+
+.timeline-item.migration .timeline-dot {
+  background: #8ebcff;
+  box-shadow: 0 0 12px rgba(142, 188, 255, 0.42);
+}
+
+.timeline-item.extinction .timeline-dot {
+  background: #ff6b6b;
+  box-shadow: 0 0 12px rgba(255, 107, 107, 0.42);
+}
+
+.timeline-item.season .timeline-dot {
+  background: #82f7ad;
+  box-shadow: 0 0 12px rgba(130, 247, 173, 0.42);
+}
+
+.timeline-item.evolution .timeline-dot {
+  background: #d7fce8;
+  box-shadow: 0 0 12px rgba(215, 252, 232, 0.36);
+}
+
+.timeline-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.timeline-meta span {
+  color: rgba(233, 255, 243, 0.52);
+  font-size: 0.74rem;
+}
+
+.timeline-meta strong {
+  color: rgba(233, 255, 243, 0.74);
+  font-size: 0.74rem;
+}
+
+.timeline-item p {
+  margin: 5px 0 0;
+  color: rgba(233, 255, 243, 0.78);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}

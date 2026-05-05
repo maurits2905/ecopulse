@@ -10,9 +10,22 @@ function buildPath(points, getValue, maxValue, width, height) {
     .join(" ");
 }
 
-export default function PopulationChart({ history }) {
+function getMarkerClass(category) {
+  if (category === "disturbance") return "marker-disturbance";
+  if (category === "migration") return "marker-migration";
+  if (category === "extinction") return "marker-extinction";
+  if (category === "season") return "marker-season";
+  if (category === "evolution") return "marker-evolution";
+  return "marker-system";
+}
+
+export default function PopulationChart({ history, timelineEvents = [] }) {
   const width = 520;
   const height = 170;
+
+  const firstTick = history[0]?.tick ?? 0;
+  const lastTick = history[history.length - 1]?.tick ?? 1;
+  const tickRange = Math.max(1, lastTick - firstTick);
 
   const maxGrass = Math.max(...history.map((item) => item.grassPercent * 100), 100);
   const maxPrey = Math.max(...history.map((item) => item.prey), 100);
@@ -22,12 +35,16 @@ export default function PopulationChart({ history }) {
   const preyPath = buildPath(history, (item) => item.prey, maxPrey, width, height);
   const predatorPath = buildPath(history, (item) => item.predators, maxPredators, width, height);
 
+  const visibleMarkers = timelineEvents
+    .filter((event) => event.tick >= firstTick && event.tick <= lastTick)
+    .slice(-40);
+
   return (
     <section className="panel chart-panel">
       <div className="panel-heading horizontal">
         <div>
           <p className="eyebrow">Population graph</p>
-          <h2>Emergence over time</h2>
+          <h2>Population, resources and timeline markers</h2>
         </div>
 
         <div className="chart-legend">
@@ -58,10 +75,40 @@ export default function PopulationChart({ history }) {
           />
         ))}
 
+        {visibleMarkers.map((event) => {
+          const x = ((event.tick - firstTick) / tickRange) * width;
+
+          return (
+            <g key={event.id ?? `${event.tick}-${event.message}`}>
+              <line
+                x1={x}
+                x2={x}
+                y1="0"
+                y2={height}
+                className={`timeline-marker-line ${getMarkerClass(event.category)}`}
+              />
+              <circle
+                cx={x}
+                cy="9"
+                r="3.4"
+                className={`timeline-marker-dot ${getMarkerClass(event.category)}`}
+              />
+            </g>
+          );
+        })}
+
         <path d={grassPath} className="chart-line grass-line" />
         <path d={preyPath} className="chart-line prey-line" />
         <path d={predatorPath} className="chart-line predator-line" />
       </svg>
+
+      <div className="timeline-marker-legend">
+        <span className="marker-disturbance">Disturbance</span>
+        <span className="marker-migration">Migration</span>
+        <span className="marker-season">Season</span>
+        <span className="marker-evolution">Evolution</span>
+        <span className="marker-extinction">Extinction</span>
+      </div>
     </section>
   );
 }

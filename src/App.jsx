@@ -12,6 +12,7 @@ import SettingsPanel from "./components/SettingsPanel";
 import SimulationCanvas from "./components/SimulationCanvas";
 import StatsPanel from "./components/StatsPanel";
 import TerrainPanel from "./components/TerrainPanel";
+import TimelinePanel from "./components/TimelinePanel";
 import TraitChart from "./components/TraitChart";
 import { createWorld } from "./simulation/createWorld";
 import { getPresetSettings, PRESETS } from "./simulation/presets";
@@ -170,10 +171,10 @@ export default function App() {
 
   useEffect(() => {
     if (skipPresetResetRef.current) {
-    skipPresetResetRef.current = false;
-    return;
+      skipPresetResetRef.current = false;
+      return;
     }
-    
+
     const presetSettings = getPresetSettings(presetKey);
     setSettings(presetSettings);
     tickAccumulatorRef.current = 0;
@@ -247,7 +248,10 @@ export default function App() {
             onStep={stepWorld}
           />
 
-          <PopulationChart history={worldView.history} />
+          <PopulationChart
+            history={worldView.history}
+            timelineEvents={worldView.timelineEvents}
+          />
           <TraitChart history={worldView.history} />
         </section>
 
@@ -257,6 +261,7 @@ export default function App() {
           <InspectorPanel inspected={inspected} />
           <SeasonPanel stats={worldView.stats} />
           <DisturbancePanel stats={worldView.stats} />
+          <TimelinePanel timelineEvents={worldView.timelineEvents} />
           <TerrainPanel stats={worldView.stats} />
           <EvolutionPanel stats={worldView.stats} />
           <ExperimentPanel

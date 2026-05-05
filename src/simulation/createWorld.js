@@ -289,12 +289,23 @@ export function createWorld(settings) {
     random,
     settings,
     history: [],
+    timelineEvents: [
+      {
+        id: "0-system",
+        tick: 0,
+        type: "info",
+        category: "system",
+        message:
+          "EcoPulse started. The timeline now tracks major ecosystem events across the run.",
+      },
+    ],
     events: [
       {
         tick: 0,
         type: "info",
+        category: "system",
         message:
-          "EcoPulse started. Biome-based terrain now creates larger regions, rivers, water and survival zones.",
+          "EcoPulse started. The timeline now tracks major ecosystem events across the run.",
       },
     ],
     lastEventFlags: {},

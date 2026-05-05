@@ -1,6 +1,7 @@
 import { clamp } from "../utils/clamp";
 import { TRAIT_LIMITS } from "./presets";
 import { TERRAIN_TYPES } from "./terrain";
+import { pushWorldEvent } from "./eventBus";
 
 function varyTrait(random, value, variance, min, max) {
   const varied = value + random.range(-variance, variance) * value;
@@ -202,13 +203,14 @@ export function applyMigration(world) {
     }
 
     if (added > 0) {
-      world.events.unshift({
-        tick: world.tick,
-        type: "info",
-        message: `${added} prey migrated into the ecosystem from the edge of the map.`,
-      });
-
-      world.events = world.events.slice(0, 12);
+      pushWorldEvent(
+        world,
+        "info",
+        `${added} prey migrated into the ecosystem from the edge of the map.`,
+        {
+          category: "migration",
+        },
+      );
     }
   }
 
@@ -230,13 +232,14 @@ export function applyMigration(world) {
     }
 
     if (added > 0) {
-      world.events.unshift({
-        tick: world.tick,
-        type: "warning",
-        message: `${added} predator${added === 1 ? "" : "s"} entered the ecosystem from the edge.`,
-      });
-
-      world.events = world.events.slice(0, 12);
+      pushWorldEvent(
+        world,
+        "warning",
+        `${added} predator${added === 1 ? "" : "s"} entered the ecosystem from the edge.`,
+        {
+          category: "migration",
+        },
+      );
     }
   }
 }
