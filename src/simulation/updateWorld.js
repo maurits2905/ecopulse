@@ -1,6 +1,7 @@
 import { clamp } from "../utils/clamp";
 import { eatGrassAt, getCell } from "./grass";
 import {
+  countNearbyAgents,
   findBestGrassDirection,
   findNearestAgent,
   findNearestVisiblePrey,
@@ -31,6 +32,13 @@ function updatePrey(world) {
     const previousX = prey.x;
     const previousY = prey.y;
 
+    const localPrey = countNearbyAgents(
+      prey,
+      world.prey,
+      settings.preyCrowdingRadius,
+    );
+    prey.localCrowding = localPrey;
+
     const nearestPredator = findNearestAgent(
       prey,
       world.predators,
@@ -54,6 +62,12 @@ function updatePrey(world) {
       movement.y += flee.y * (1.5 + caution * 1.45);
     }
 
+    if (localPrey > 2) {
+      const disperse = randomDirection(world.random);
+      movement.x += disperse.x * Math.min(1.1, localPrey * 0.08);
+      movement.y += disperse.y * Math.min(1.1, localPrey * 0.08);
+    }
+
     movement = normalize(movement);
 
     const currentCell = getCell(world, prey.x, prey.y);
@@ -68,14 +82,19 @@ function updatePrey(world) {
     const eaten = eatGrassAt(world, prey.x, prey.y, settings.grassBite);
     const cautionFeedingCost = 1 - Math.min(0.22, caution * 0.06);
 
+    prey.recentFood = eaten;
+
     prey.energy += eaten * settings.grassEnergy * cautionFeedingCost;
 
     const speedCost = speed * 0.12;
     const visionCost = vision * 0.006;
+    const crowdingCost = localPrey * settings.preyCrowdingEnergyCost;
+
     prey.energy -=
       settings.preyHunger * metabolism * season.hungerModifier +
       speedCost +
-      visionCost;
+      visionCost +
+      crowdingCost;
 
     maybeReproducePrey(prey, world, newborns);
 
@@ -98,6 +117,7 @@ function updatePredators(world) {
   for (const predator of world.predators) {
     predator.age += 1;
     predator.cooldown = Math.max(0, predator.cooldown - 1);
+    predator.huntCooldown = Math.max(0, (predator.huntCooldown ?? 0) - 1);
 
     const vision = predator.traits.vision;
     const speed = predator.traits.speed;
@@ -106,6 +126,13 @@ function updatePredators(world) {
 
     const previousX = predator.x;
     const previousY = predator.y;
+
+    const localPredators = countNearbyAgents(
+      predator,
+      world.predators,
+      settings.predatorCrowdingRadius,
+    );
+    predator.localCrowding = localPredators;
 
     const nearestPrey = findNearestVisiblePrey(
       predator,
@@ -130,6 +157,12 @@ function updatePredators(world) {
       movement.y += chase.y * (1.3 + aggression * 1.15);
     }
 
+    if (localPredators > 1) {
+      const disperse = randomDirection(world.random);
+      movement.x += disperse.x * Math.min(0.9, localPredators * 0.06);
+      movement.y += disperse.y * Math.min(0.9, localPredators * 0.06);
+    }
+
     movement = normalize(movement);
 
     const currentCell = getCell(world, predator.x, predator.y);
@@ -146,26 +179,31 @@ function updatePredators(world) {
     const effectiveKillRadius =
       settings.predatorKillRadius * (1 - shelter * 0.35);
 
-    const preyAfterMove = findNearestAgent(
-      predator,
-      world.prey,
-      effectiveKillRadius,
-    );
+    if (predator.huntCooldown <= 0) {
+      const preyAfterMove = findNearestAgent(
+        predator,
+        world.prey,
+        effectiveKillRadius,
+      );
 
-    if (preyAfterMove.agent) {
-      preyAfterMove.agent.dead = true;
-      predator.energy += settings.predatorEatEnergy;
+      if (preyAfterMove.agent) {
+        preyAfterMove.agent.dead = true;
+        predator.energy += settings.predatorEatEnergy;
+        predator.huntCooldown = settings.predatorHandlingTime;
+      }
     }
 
     const speedCost = speed * 0.14;
     const visionCost = vision * 0.008;
     const aggressionCost = aggression * 0.12;
+    const crowdingCost = localPredators * settings.predatorCrowdingEnergyCost;
 
     predator.energy -=
       settings.predatorHunger * metabolism * season.hungerModifier +
       speedCost +
       visionCost +
-      aggressionCost;
+      aggressionCost +
+      crowdingCost;
 
     maybeReproducePredator(predator, world, newborns);
 

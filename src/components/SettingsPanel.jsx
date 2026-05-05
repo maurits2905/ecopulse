@@ -140,6 +140,34 @@ const SLIDERS = [
     min: 0,
     max: 0.3,
     step: 0.01
+  },
+    {
+    key: "preyCrowdingEnergyCost",
+    label: "Prey crowding cost",
+    min: 0,
+    max: 0.08,
+    step: 0.002
+  },
+  {
+    key: "predatorHandlingTime",
+    label: "Predator handling time",
+    min: 0,
+    max: 30,
+    step: 1
+  },
+  {
+    key: "predatorPreyRatioForReproduction",
+    label: "Predator prey ratio needed",
+    min: 1,
+    max: 12,
+    step: 0.25
+  },
+  {
+    key: "predatorCrowdingEnergyCost",
+    label: "Predator crowding cost",
+    min: 0,
+    max: 0.12,
+    step: 0.002
   }
 ];
 

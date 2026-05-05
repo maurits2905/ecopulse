@@ -138,6 +138,24 @@ export function findBestGrassDirection(agent, world, vision) {
   return best ? normalize(best) : { x: 0, y: 0 };
 }
 
+export function countNearbyAgents(source, agents, radius) {
+  let count = 0;
+  const radiusSquared = radius * radius;
+
+  for (const target of agents) {
+    if (target.dead || target.id === source.id) continue;
+
+    const dx = source.x - target.x;
+    const dy = source.y - target.y;
+
+    if (dx * dx + dy * dy <= radiusSquared) {
+      count += 1;
+    }
+  }
+
+  return count;
+}
+
 export function randomDirection(random) {
   const angle = random.range(0, Math.PI * 2);
 
