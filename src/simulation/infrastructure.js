@@ -6,6 +6,9 @@ export function initializeInfrastructure(world) {
     bridges: [],
     roads: [],
   };
+
+  world.infrastructure.bridges = world.infrastructure.bridges ?? [];
+  world.infrastructure.roads = world.infrastructure.roads ?? [];
 }
 
 export function isBridgeAt(world, x, y) {
@@ -18,10 +21,106 @@ export function isBridgeAt(world, x, y) {
   );
 }
 
+export function isRoadAt(world, x, y) {
+  const roads = world.infrastructure?.roads ?? [];
+  const cellX = Math.floor(x);
+  const cellY = Math.floor(y);
+
+  return roads.some((road) => road.x === cellX && road.y === cellY);
+}
+
 export function canMoveThroughCell(world, x, y, cell) {
   if (!cell) return false;
   if (cell.terrain !== TERRAIN_TYPES.WATER) return true;
   return isBridgeAt(world, x, y);
+}
+
+export function getInfrastructureMovementModifier(world, x, y) {
+  const cell = world.cells[Math.floor(y) * world.width + Math.floor(x)];
+
+  if (!cell) return 1;
+
+  if (cell.terrain === TERRAIN_TYPES.WATER && isBridgeAt(world, x, y)) {
+    return world.settings.bridgeMovementBonus ?? 1.12;
+  }
+
+  if (isRoadAt(world, x, y)) {
+    return world.settings.roadMovementBonus ?? 1.08;
+  }
+
+  return 1;
+}
+
+export function recordRoadUse(world, x, y, strength = 1) {
+  const settings = world.settings;
+
+  if (!settings.roadBuildingEnabled) return;
+  if (!world.civilization?.enabled) return;
+
+  initializeInfrastructure(world);
+
+  const cellX = Math.floor(x);
+  const cellY = Math.floor(y);
+
+  if (cellX < 0 || cellY < 0 || cellX >= world.width || cellY >= world.height)
+    return;
+
+  const cell = world.cells[cellY * world.width + cellX];
+
+  if (!cell || cell.terrain === TERRAIN_TYPES.WATER) return;
+
+  const distanceToSettlement = Math.sqrt(
+    (cellX - world.civilization.settlementX) ** 2 +
+      (cellY - world.civilization.settlementY) ** 2,
+  );
+
+  if (distanceToSettlement > settings.roadMaxDistanceFromSettlement) return;
+
+  const existing = world.infrastructure.roads.find(
+    (road) => road.x === cellX && road.y === cellY,
+  );
+
+  if (existing) {
+    existing.strength = Math.min(
+      1,
+      existing.strength + settings.roadWearGain * strength,
+    );
+    existing.lastUsedTick = world.tick;
+    return;
+  }
+
+  if (world.infrastructure.roads.length >= settings.maxRoadCells) return;
+  if (!world.random.chance(settings.roadCreateChance * strength)) return;
+
+  world.infrastructure.roads.push({
+    id: `road-${world.tick}-${cellX}-${cellY}`,
+    x: cellX,
+    y: cellY,
+    strength: settings.roadInitialStrength,
+    createdAt: world.tick,
+    lastUsedTick: world.tick,
+  });
+}
+
+export function updateRoads(world) {
+  const settings = world.settings;
+
+  if (!settings.roadBuildingEnabled || !world.infrastructure?.roads) return;
+
+  world.infrastructure.roads = world.infrastructure.roads
+    .map((road) => {
+      const recentlyUsed =
+        world.tick - road.lastUsedTick < settings.roadRecentUseWindow;
+      const decay = recentlyUsed
+        ? settings.roadActiveDecay
+        : settings.roadUnusedDecay;
+
+      return {
+        ...road,
+        strength: Math.max(0, road.strength - decay),
+      };
+    })
+    .filter((road) => road.strength > settings.roadMinimumStrength);
 }
 
 export function maybeBuildBridge(world) {

@@ -82,6 +82,7 @@ export function collectStats(world) {
     civilization,
     infrastructure,
     bridges: infrastructure.bridges.length,
+    roads: infrastructure.roads.length,
     humans: world.humans?.length ?? 0,
     preyEnergy,
     predatorEnergy,

@@ -141,6 +141,19 @@ export const DEFAULT_SETTINGS = {
   bridgeSearchRadius: 20,
   bridgeMinimumSpacing: 14,
 
+  roadBuildingEnabled: true,
+  roadCreateChance: 0.045,
+  roadWearGain: 0.035,
+  roadInitialStrength: 0.22,
+  roadMinimumStrength: 0.04,
+  roadActiveDecay: 0.00008,
+  roadUnusedDecay: 0.00045,
+  roadRecentUseWindow: 500,
+  roadMaxDistanceFromSettlement: 28,
+  maxRoadCells: 420,
+  roadMovementBonus: 1.08,
+  bridgeMovementBonus: 1.12,
+
   mutationRate: 0.08,
   traitVariance: 0.12,
 
@@ -532,6 +545,11 @@ export const PRESETS = {
       bridgeBuildChance: 0.016,
       bridgeBuildCooldown: 850,
       bridgeMinimumSpacing: 16,
+
+      roadBuildingEnabled: true,
+      roadCreateChance: 0.055,
+      roadMaxDistanceFromSettlement: 32,
+      maxRoadCells: 520,
     },
   },
 

@@ -1,6 +1,10 @@
 import { clamp } from "../utils/clamp";
 import { getCell } from "./grass";
-import { maybeBuildBridge } from "./infrastructure";
+import {
+  getInfrastructureMovementModifier,
+  maybeBuildBridge,
+  recordRoadUse,
+} from "./infrastructure";
 import {
   findNearestAgent,
   keepInBoundsAndTerrain,
@@ -221,10 +225,19 @@ function updateHuman(world, human) {
   }
 
   const carryingPenalty = human.task === "return" ? 0.88 : 1;
-  human.x += movement.x * settings.humanSpeed * carryingPenalty;
-  human.y += movement.y * settings.humanSpeed * carryingPenalty;
+  const infrastructureModifier = getInfrastructureMovementModifier(
+    world,
+    human.x,
+    human.y,
+  );
+
+  human.x +=
+    movement.x * settings.humanSpeed * carryingPenalty * infrastructureModifier;
+  human.y +=
+    movement.y * settings.humanSpeed * carryingPenalty * infrastructureModifier;
 
   keepInBoundsAndTerrain(human, world, previousX, previousY);
+  recordRoadUse(world, human.x, human.y, human.task === "return" ? 1.25 : 1);
 
   if (human.task !== "return") {
     gatherAtHumanPosition(world, human);

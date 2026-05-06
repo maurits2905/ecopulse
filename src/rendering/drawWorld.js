@@ -38,6 +38,7 @@ export function drawWorld(canvas, world) {
 
   drawSeasonAtmosphere(ctx, world, seasonVisual, viewWidth, viewHeight);
   drawCivilizationInfluence(ctx, world, cellWidth, cellHeight);
+  drawRoads(ctx, world, cellWidth, cellHeight);
   drawBridges(ctx, world, cellWidth, cellHeight);
   drawSettlement(ctx, world, cellWidth, cellHeight);
   drawAgents(ctx, world, cellWidth, cellHeight);
@@ -703,6 +704,45 @@ function drawSettlementPaths(ctx, world, cellWidth, cellHeight) {
       y + Math.sin(angle) * length,
     );
     ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+function drawRoads(ctx, world, cellWidth, cellHeight) {
+  const roads = world.infrastructure?.roads ?? [];
+
+  if (!roads.length) return;
+
+  ctx.save();
+
+  for (const road of roads) {
+    const x = road.x * cellWidth;
+    const y = road.y * cellHeight;
+    const alpha = Math.max(0.08, Math.min(0.34, road.strength * 0.34));
+
+    ctx.fillStyle = `rgba(170, 122, 72, ${alpha})`;
+
+    ctx.beginPath();
+    ctx.ellipse(
+      x + cellWidth * 0.5,
+      y + cellHeight * 0.5,
+      Math.max(1.2, cellWidth * 0.42),
+      Math.max(1.2, cellHeight * 0.3),
+      Math.sin((road.x + road.y) * 0.7) * 0.6,
+      0,
+      Math.PI * 2,
+    );
+    ctx.fill();
+
+    if (world.settings.renderDetail === "detailed" && road.strength > 0.5) {
+      ctx.strokeStyle = `rgba(235, 185, 118, ${alpha * 0.7})`;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(x + cellWidth * 0.18, y + cellHeight * 0.5);
+      ctx.lineTo(x + cellWidth * 0.82, y + cellHeight * 0.5);
+      ctx.stroke();
+    }
   }
 
   ctx.restore();

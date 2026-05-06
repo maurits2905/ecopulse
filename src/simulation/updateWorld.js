@@ -20,6 +20,10 @@ import {
 import { growGrass } from "./grass";
 import { applyMigration } from "./migration";
 import { maybeReproducePredator, maybeReproducePrey } from "./reproduction";
+import {
+  getInfrastructureMovementModifier,
+  updateRoads,
+} from "./infrastructure";
 import { getCurrentSeason } from "./seasons";
 import { getTerrainInfo } from "./terrain";
 import { collectStats, evaluateEvents, pushHistory } from "./stats";
@@ -121,8 +125,14 @@ function updatePrey(world) {
     const currentTerrain = getTerrainInfo(currentCell.terrain);
     const terrainSlowdown = currentTerrain.shelter > 0 ? 0.88 : 1;
 
-    prey.x += movement.x * speed * terrainSlowdown;
-    prey.y += movement.y * speed * terrainSlowdown;
+    const infrastructureModifier = getInfrastructureMovementModifier(
+      world,
+      prey.x,
+      prey.y,
+    );
+
+    prey.x += movement.x * speed * terrainSlowdown * infrastructureModifier;
+    prey.y += movement.y * speed * terrainSlowdown * infrastructureModifier;
 
     keepInBoundsAndTerrain(prey, world, previousX, previousY);
 
@@ -271,8 +281,24 @@ function updatePredators(world) {
     const terrainSlowdown = currentTerrain.shelter > 0 ? 0.82 : 1;
     const restMovementFactor = shouldRest ? 0.18 : 1;
 
-    predator.x += movement.x * speed * terrainSlowdown * restMovementFactor;
-    predator.y += movement.y * speed * terrainSlowdown * restMovementFactor;
+    const infrastructureModifier = getInfrastructureMovementModifier(
+      world,
+      predator.x,
+      predator.y,
+    );
+
+    predator.x +=
+      movement.x *
+      speed *
+      terrainSlowdown *
+      restMovementFactor *
+      infrastructureModifier;
+    predator.y +=
+      movement.y *
+      speed *
+      terrainSlowdown *
+      restMovementFactor *
+      infrastructureModifier;
 
     keepInBoundsAndTerrain(predator, world, previousX, previousY);
 
@@ -364,6 +390,7 @@ export function updateWorld(world) {
   updatePredators(world);
   applyMigration(world);
   updateCivilization(world);
+  updateRoads(world);
   applyEnvironmentalEventEffects(world);
 
   world.tick += 1;

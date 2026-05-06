@@ -51,7 +51,8 @@ function Overview() {
         <Info title="Predators" text="Chase prey, rest when starving, reproduce when prey are available." />
         <Info title="Terrain" text="Forests give shelter, water blocks movement, fertile land helps grass recover." />
         <Info title="Events" text="Migration, drought, disease, wildfire and seasons can change the balance." />
-        <Info title="Humans" text="Optional civilization mode adds humans that gather food, cut forest, hunt prey and build huts." />
+        <Info title="Humans" text="Optional civilization mode adds humans that gather food, cut forest, hunt prey, build huts and eventually create limited bridges over water." />
+        <Info title="Humans" text="Optional civilization mode adds humans that gather food, cut forest, hunt prey, build huts, create roads and eventually build limited bridges over water." />
       </div>
     </div>
   );
@@ -68,6 +69,10 @@ function Rules() {
         <li>Offspring inherit traits from parents with small mutations.</li>
         <li>Predators have handling time after a kill, so they cannot instantly wipe out everything.</li>
         <li>Migration can reintroduce prey or predators from the edges of the map.</li>
+        <li>Humans can build bridges over narrow water crossings when they have enough food and wood.</li>
+        <li>Bridges are limited by placement rules, cooldown and spacing, and animals can use them too.</li>
+        <li>Humans create roads naturally where they repeatedly move, and roads make travel slightly faster.</li>
+        <li>Roads fade over time if they are no longer used, so old routes can disappear.</li>
       </ul>
     </div>
   );

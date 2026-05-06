@@ -46,6 +46,7 @@ export default function CivilizationPanel({ stats }) {
         <Info label="Pressure" value={decimal(civ.pressure)} />
         <Info label="Stress" value={percent(civ.stress)} />
         <Info label="Bridges" value={number(stats?.bridges ?? 0)} />
+        <Info label="Roads" value={number(stats?.roads ?? 0)} />
       </div>
 
       <div className="civilization-stress">
