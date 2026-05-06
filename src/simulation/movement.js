@@ -1,6 +1,7 @@
 import { clamp } from "../utils/clamp";
 import { getCell } from "./grass";
 import { getTerrainInfo, isBlockedTerrain } from "./terrain";
+import { canMoveThroughCell } from "./infrastructure";
 
 export function distance(a, b) {
   const dx = a.x - b.x;
@@ -31,7 +32,10 @@ export function keepInBoundsAndTerrain(agent, world, previousX, previousY) {
 
   const cell = getCell(world, agent.x, agent.y);
 
-  if (!isBlockedTerrain(cell.terrain)) {
+  if (
+    !isBlockedTerrain(cell.terrain) ||
+    canMoveThroughCell(world, agent.x, agent.y, cell)
+  ) {
     return;
   }
 
@@ -46,7 +50,10 @@ export function keepInBoundsAndTerrain(agent, world, previousX, previousY) {
 
   const escapeCell = getCell(world, agent.x, agent.y);
 
-  if (isBlockedTerrain(escapeCell.terrain)) {
+  if (
+    isBlockedTerrain(escapeCell.terrain) &&
+    !canMoveThroughCell(world, agent.x, agent.y, escapeCell)
+  ) {
     agent.x = previousX;
     agent.y = previousY;
     keepInBounds(agent, world);

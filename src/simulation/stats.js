@@ -68,6 +68,11 @@ export function collectStats(world) {
     pressure: 0,
   };
 
+  const infrastructure = world.infrastructure ?? {
+    bridges: [],
+    roads: [],
+  };
+
   return {
     tick: world.tick,
     grassTotal,
@@ -75,6 +80,8 @@ export function collectStats(world) {
     prey: world.prey.length,
     predators: world.predators.length,
     civilization,
+    infrastructure,
+    bridges: infrastructure.bridges.length,
     humans: world.humans?.length ?? 0,
     preyEnergy,
     predatorEnergy,

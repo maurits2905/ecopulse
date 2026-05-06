@@ -94,9 +94,11 @@ function Roadmap() {
   return (
     <div className="guide-content">
       <ul className="guide-list">
-        <li><strong>Next:</strong> responsive/mobile polish and layout cleanup.</li>
-        <li><strong>Later:</strong> better terrain generation and smoother biome shapes.</li>
         <li><strong>Now experimental:</strong> civilization mode with humans, resources, huts and settlement pressure.</li>
+        <li><strong>Next:</strong> better terrain generation and smoother biome visuals.</li>
+        <li><strong>Later:</strong> smarter civilization expansion with roads, resource pressure and visible settlement growth.</li>
+        <li><strong>Later:</strong> bridge building where humans can create limited crossings over water that animals can also use.</li>
+        <li><strong>Later:</strong> realistic bridge placement rules so bridges only appear at useful narrow crossings, with spacing between them instead of bridges everywhere.</li>
         <li><strong>Later:</strong> more advanced charts, scenario scoring and replay summaries.</li>
       </ul>
     </div>

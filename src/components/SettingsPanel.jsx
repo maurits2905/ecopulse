@@ -323,6 +323,34 @@ const SLIDERS = [
     max: 300,
     step: 5
    },
+   {
+    key: "bridgeBuildChance",
+    label: "Bridge build chance",
+    min: 0,
+    max: 0.08,
+    step: 0.002
+    },
+    {
+    key: "bridgeBuildCooldown",
+    label: "Bridge build cooldown",
+    min: 100,
+    max: 3000,
+    step: 50
+    },
+    {
+    key: "bridgeMinimumSpacing",
+    label: "Bridge spacing",
+    min: 4,
+    max: 40,
+    step: 1
+    },
+    {
+    key: "bridgeWoodCost",
+    label: "Bridge wood cost",
+    min: 20,
+    max: 250,
+    step: 5
+    },
 ];
 
 function displayValue(value) {
@@ -394,6 +422,13 @@ export default function SettingsPanel({ settings, setSettings }) {
     setSettings((current) => ({
     ...current,
     civilizationEnabled: !current.civilizationEnabled
+    }));
+  }
+
+  function toggleBridgeBuilding() {
+    setSettings((current) => ({
+        ...current,
+        bridgeBuildingEnabled: !current.bridgeBuildingEnabled
     }));
   }
 
@@ -500,6 +535,14 @@ export default function SettingsPanel({ settings, setSettings }) {
         onClick={toggleCivilization}
         >
         Civilization {settings.civilizationEnabled ? "enabled" : "disabled"}
+      </button>
+
+      <button
+        type="button"
+        className={settings.bridgeBuildingEnabled ? "toggle-button active" : "toggle-button"}
+        onClick={toggleBridgeBuilding}
+        >
+        Bridges {settings.bridgeBuildingEnabled ? "enabled" : "disabled"}
       </button>
 
       <div className="settings-list">

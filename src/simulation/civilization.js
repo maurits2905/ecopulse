@@ -1,5 +1,6 @@
 import { clamp } from "../utils/clamp";
 import { getCell } from "./grass";
+import { maybeBuildBridge } from "./infrastructure";
 import {
   findNearestAgent,
   keepInBoundsAndTerrain,
@@ -77,9 +78,9 @@ export function updateCivilization(world) {
 
   world.humans = world.humans.filter((human) => !human.dead);
 
-  consumeSettlementFood(world);
   maybeGrowSettlement(world, newHumans);
   maybeBuildHut(world);
+  maybeBuildBridge(world);
   applyHumanPressure(world);
   updateCivilizationStress(world);
 

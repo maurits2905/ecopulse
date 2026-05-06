@@ -124,6 +124,15 @@ export const DEFAULT_SETTINGS = {
   humanPassiveDeforestationChance: 0.000035,
   humanMinimumPreyBeforeHunting: 80,
 
+  bridgeBuildingEnabled: true,
+  bridgeBuildStartTick: 900,
+  bridgeBuildChance: 0.012,
+  bridgeBuildCooldown: 900,
+  bridgeWoodCost: 95,
+  bridgeFoodCost: 35,
+  bridgeSearchRadius: 20,
+  bridgeMinimumSpacing: 14,
+
   mutationRate: 0.08,
   traitVariance: 0.12,
 
@@ -509,6 +518,12 @@ export const PRESETS = {
       humanLandPressure: 0.26,
       humanDeforestationChance: 0.00036,
       humanPassiveDeforestationChance: 0.00004,
+
+      bridgeBuildingEnabled: true,
+      bridgeBuildStartTick: 700,
+      bridgeBuildChance: 0.016,
+      bridgeBuildCooldown: 850,
+      bridgeMinimumSpacing: 16,
     },
   },
 

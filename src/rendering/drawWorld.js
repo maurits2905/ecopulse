@@ -38,6 +38,7 @@ export function drawWorld(canvas, world) {
 
   drawSeasonAtmosphere(ctx, world, seasonVisual, viewWidth, viewHeight);
   drawCivilizationInfluence(ctx, world, cellWidth, cellHeight);
+  drawBridges(ctx, world, cellWidth, cellHeight);
   drawSettlement(ctx, world, cellWidth, cellHeight);
   drawAgents(ctx, world, cellWidth, cellHeight);
   drawHumans(ctx, world, cellWidth, cellHeight);
@@ -702,6 +703,75 @@ function drawSettlementPaths(ctx, world, cellWidth, cellHeight) {
       y + Math.sin(angle) * length,
     );
     ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+function drawBridges(ctx, world, cellWidth, cellHeight) {
+  const bridges = world.infrastructure?.bridges ?? [];
+
+  if (!bridges.length) return;
+
+  ctx.save();
+
+  for (const bridge of bridges) {
+    for (const cell of bridge.cells) {
+      const x = cell.x * cellWidth;
+      const y = cell.y * cellHeight;
+
+      ctx.fillStyle = "rgba(154, 103, 55, 0.96)";
+      ctx.strokeStyle = "rgba(42, 24, 10, 0.95)";
+      ctx.lineWidth = Math.max(1, Math.min(cellWidth, cellHeight) * 0.13);
+
+      if (bridge.orientation === "horizontal") {
+        ctx.fillRect(
+          x - 1,
+          y + cellHeight * 0.25,
+          cellWidth + 2,
+          cellHeight * 0.5,
+        );
+        ctx.strokeRect(
+          x - 1,
+          y + cellHeight * 0.25,
+          cellWidth + 2,
+          cellHeight * 0.5,
+        );
+
+        if (world.settings.renderDetail !== "performance") {
+          ctx.strokeStyle = "rgba(245, 190, 120, 0.42)";
+          ctx.beginPath();
+          ctx.moveTo(x, y + cellHeight * 0.42);
+          ctx.lineTo(x + cellWidth, y + cellHeight * 0.42);
+          ctx.moveTo(x, y + cellHeight * 0.62);
+          ctx.lineTo(x + cellWidth, y + cellHeight * 0.62);
+          ctx.stroke();
+        }
+      } else {
+        ctx.fillRect(
+          x + cellWidth * 0.25,
+          y - 1,
+          cellWidth * 0.5,
+          cellHeight + 2,
+        );
+        ctx.strokeRect(
+          x + cellWidth * 0.25,
+          y - 1,
+          cellWidth * 0.5,
+          cellHeight + 2,
+        );
+
+        if (world.settings.renderDetail !== "performance") {
+          ctx.strokeStyle = "rgba(245, 190, 120, 0.42)";
+          ctx.beginPath();
+          ctx.moveTo(x + cellWidth * 0.42, y);
+          ctx.lineTo(x + cellWidth * 0.42, y + cellHeight);
+          ctx.moveTo(x + cellWidth * 0.62, y);
+          ctx.lineTo(x + cellWidth * 0.62, y + cellHeight);
+          ctx.stroke();
+        }
+      }
+    }
   }
 
   ctx.restore();
