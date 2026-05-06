@@ -1865,3 +1865,116 @@ input[type="range"] {
     grid-template-columns: 1fr;
   }
 }
+
+.panel-dock {
+  min-width: 0;
+}
+
+.dock-tabs-panel {
+  position: sticky;
+  top: 16px;
+  z-index: 8;
+  backdrop-filter: blur(18px);
+}
+
+.dock-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.dock-tabs button {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  border: 1px solid rgba(233, 255, 243, 0.1);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.055);
+  color: rgba(233, 255, 243, 0.68);
+  padding: 10px;
+  text-align: left;
+  font-weight: 900;
+}
+
+.dock-tabs button:hover {
+  border-color: rgba(130, 247, 173, 0.26);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.dock-tabs button.active {
+  border-color: rgba(130, 247, 173, 0.34);
+  background:
+    linear-gradient(135deg, rgba(130, 247, 173, 0.16), transparent 70%),
+    rgba(255, 255, 255, 0.08);
+  color: #e9fff3;
+}
+
+.dock-tabs button span {
+  overflow: hidden;
+  font-size: 0.8rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dock-tabs button strong {
+  overflow: hidden;
+  color: rgba(233, 255, 243, 0.5);
+  font-size: 0.66rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dock-description {
+  margin: 12px 0 0;
+  color: rgba(233, 255, 243, 0.56);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.dock-panel-stack {
+  display: grid;
+  gap: 16px;
+}
+
+.dock-panel-item {
+  min-width: 0;
+}
+
+@media (max-width: 1180px) {
+  .dock-tabs-panel {
+    position: relative;
+    top: auto;
+  }
+
+  .panel-dock {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .dock-panel-stack {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dock-panel-stack > .dock-panel-item:has(.settings-panel),
+  .dock-panel-stack > .dock-panel-item:has(.experiment-panel),
+  .dock-panel-stack > .dock-panel-item:has(.guide-panel) {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 760px) {
+  .dock-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dock-panel-stack {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 420px) {
+  .dock-tabs {
+    grid-template-columns: 1fr;
+  }
+}

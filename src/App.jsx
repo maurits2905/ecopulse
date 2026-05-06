@@ -18,6 +18,7 @@ import TraitChart from "./components/TraitChart";
 import MobileSummaryBar from "./components/MobileSummaryBar";
 import RunSummaryPanel from "./components/RunSummaryPanel";
 import CivilizationPanel from "./components/CivilizationPanel";
+import PanelDock from "./components/PanelDock";
 import { buildRunSummary } from "./simulation/runSummary";
 import { createWorld } from "./simulation/createWorld";
 import { getPresetSettings, PRESETS } from "./simulation/presets";
@@ -266,37 +267,80 @@ export default function App() {
           <TraitChart history={worldView.history} />
         </section>
 
-        <aside className="side-column">
-          <StatsPanel stats={worldView.stats} world={worldView} />
-          <ScenarioPanel scenario={scenario} />
-          <RunSummaryPanel summary={runSummary} scenario={scenario} />
-          <GuidePanel />
-          <InspectorPanel inspected={inspected} />
-          <SeasonPanel stats={worldView.stats} />
-          <DisturbancePanel stats={worldView.stats} />
-          <CivilizationPanel stats={worldView.stats} />
-          <TimelinePanel timelineEvents={worldView.timelineEvents} />
-          <TimelinePanel timelineEvents={worldView.timelineEvents} />
-          <TerrainPanel stats={worldView.stats} />
-          <EvolutionPanel stats={worldView.stats} />
-          <ExperimentPanel
-            savedExperiments={savedExperiments}
-            exportText={exportText}
-            importText={importText}
-            setImportText={setImportText}
-            copyStatus={copyStatus}
-            importStatus={importStatus}
-            onSaveExperiment={handleSaveExperiment}
-            onLoadExperiment={handleLoadExperiment}
-            onDeleteExperiment={handleDeleteExperiment}
-            onCopyJson={handleCopyJson}
-            onCopyShareUrl={handleCopyShareUrl}
-            onDownloadJson={handleDownloadJson}
-            onImportExperiment={handleImportExperiment}
-          />
-          <SettingsPanel settings={settings} setSettings={setSettings} />
-          <EventLog events={worldView.events} />
-        </aside>
+        <PanelDock
+          groups={[
+            {
+              key: "overview",
+              label: "Overview",
+              title: "Ecosystem overview",
+              description: "Current state, scenario goals and the run report.",
+              badge: worldView.stats?.status,
+              items: [
+                <StatsPanel stats={worldView.stats} world={worldView} />,
+                <ScenarioPanel scenario={scenario} />,
+                <RunSummaryPanel summary={runSummary} scenario={scenario} />
+              ]
+            },
+            {
+              key: "world",
+              label: "World",
+              title: "World systems",
+              description: "Season, terrain, disturbances and timeline events.",
+              items: [
+                <SeasonPanel stats={worldView.stats} />,
+                <TerrainPanel stats={worldView.stats} />,
+                <DisturbancePanel stats={worldView.stats} />,
+                <TimelinePanel timelineEvents={worldView.timelineEvents} />
+              ]
+            },
+            {
+              key: "lab",
+              label: "Lab",
+              title: "Experiment lab",
+              description: "Inspection, evolution and saved/shared setups.",
+              items: [
+                <InspectorPanel inspected={inspected} />,
+                <EvolutionPanel stats={worldView.stats} />,
+                <ExperimentPanel
+                  savedExperiments={savedExperiments}
+                  exportText={exportText}
+                  importText={importText}
+                  setImportText={setImportText}
+                  copyStatus={copyStatus}
+                  importStatus={importStatus}
+                  onSaveExperiment={handleSaveExperiment}
+                  onLoadExperiment={handleLoadExperiment}
+                  onDeleteExperiment={handleDeleteExperiment}
+                  onCopyJson={handleCopyJson}
+                  onCopyShareUrl={handleCopyShareUrl}
+                  onDownloadJson={handleDownloadJson}
+                  onImportExperiment={handleImportExperiment}
+                />
+              ]
+            },
+            {
+              key: "civilization",
+              label: "Civilization",
+              title: "Civilization mode",
+              description: "Humans, huts, settlement pressure, bridges and future infrastructure.",
+              badge: worldView.stats?.civilization?.enabled ? `${worldView.stats?.humans ?? 0} humans` : "Off",
+              items: [
+                <CivilizationPanel stats={worldView.stats} />,
+                <GuidePanel />
+              ]
+            },
+            {
+              key: "settings",
+              label: "Settings",
+              title: "Control center",
+              description: "Grouped simulation controls and toggles.",
+              items: [
+                <SettingsPanel settings={settings} setSettings={setSettings} />,
+                <EventLog events={worldView.events} />
+              ]
+            }
+          ]}
+        />
       </div>
     </main>
   );
