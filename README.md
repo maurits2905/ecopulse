@@ -1,14 +1,20 @@
 # EcoPulse
 
-EcoPulse is a browser-based ecosystem simulator built with React, Vite and Canvas.
+EcoPulse is a browser-based ecosystem simulator built with React, Vite and HTML Canvas.
 
-Grass grows, prey feed, predators hunt, inherited traits mutate, seasons shift, migration changes pressure, and environmental disturbances can reshape the ecosystem over time.
+Grass grows, prey feed, predators hunt, inherited traits mutate, seasons shift, migration changes pressure, environmental disturbances reshape the balance, and optional human civilization can alter the world through hunting, resource gathering, huts, roads and bridges.
 
 The project runs fully in the browser and is hosted on GitHub Pages. No backend, database or server is required.
 
 ## Live demo
 
 <https://maurits2905.github.io/ecopulse/>
+
+## Project status
+
+EcoPulse is currently considered a finished v1.0 portfolio project.
+
+The goal is not to create a perfect biological model. The goal is to create a fun, visual and interactive simulation where simple rules create emergent behavior.
 
 ## What it simulates
 
@@ -24,8 +30,9 @@ EcoPulse models a small artificial ecosystem with:
 - Environmental disturbances
 - Scenario objectives
 - Timeline markers and population graphs
-
-The goal is not to create a perfect biological model. The goal is to create a fun, visual and interactive simulation where simple rules create emergent behavior.
+- Run summary reports
+- Human civilization mode
+- Roads, bridges and settlement pressure
 
 ## Core systems
 
@@ -38,8 +45,10 @@ Each simulation tick updates:
 3. Prey behavior
 4. Predator behavior
 5. Migration
-6. Disease, wildfire and other disturbance effects
-7. Statistics and timeline events
+6. Civilization behavior
+7. Roads and infrastructure
+8. Disease, wildfire and other disturbance effects
+9. Statistics, scenarios and timeline events
 
 ### Evolution
 
@@ -63,6 +72,10 @@ Predator traits include:
 
 Offspring inherit traits from their parent with small mutations. Survival pressure determines which traits become more common over time.
 
+### Population pressure
+
+The simulation includes carrying pressure, grass scarcity pressure and overpopulation die-off. This helps prevent prey or predators from growing endlessly when resources become limited.
+
 ### Terrain
 
 Terrain affects movement and survival.
@@ -71,9 +84,9 @@ Terrain affects movement and survival.
 - Fertile land regrows grass faster
 - Barren land grows grass slowly
 - Forest gives prey shelter
-- Water blocks movement
+- Water blocks movement unless a bridge exists
 
-Terrain is generated through biome-style noise and river/coast logic.
+Terrain is generated through biome-style noise, water logic, rivers, lakes and region smoothing.
 
 ### Seasons
 
@@ -101,6 +114,29 @@ Optional disturbances include:
 - Predator disease
 - Wildfire
 
+### Civilization
+
+Civilization mode adds humans as an optional pressure layer.
+
+Humans can:
+
+- Gather food
+- Gather wood
+- Hunt prey
+- Build huts
+- Expand settlement capacity
+- Create roads through repeated movement
+- Build limited bridges over narrow water crossings
+- Create pressure on nearby land and forests
+
+Animals can also use bridges, which means human infrastructure can change movement patterns for the entire ecosystem.
+
+### Roads and bridges
+
+Roads appear naturally where humans repeatedly move. They slightly improve movement and fade if unused.
+
+Bridges are built only when humans have enough resources and a useful crossing exists. Bridge placement is limited by cooldown, spacing rules and crossing width, so bridges do not appear everywhere.
+
 ### Scenarios
 
 Some presets have scenario objectives, such as:
@@ -109,6 +145,17 @@ Some presets have scenario objectives, such as:
 - Reach a certain average generation
 - Recover grass cover
 - Avoid overpopulation or extinction
+- Survive environmental pressure
+
+### Experiments
+
+EcoPulse supports:
+
+- Saving setups locally
+- Exporting setup JSON
+- Importing setup JSON
+- Copying shareable setup URLs
+- Copying run summaries
 
 ## Presets
 
@@ -117,9 +164,11 @@ EcoPulse includes several presets, including:
 - Balanced Meadow
 - Plain World
 - Stable Ecosystem
+- Continental Wilds
 - Migration Corridor
 - Volatile World
 - Behavior Lab
+- Civilization Frontier
 - Forest Refuge
 - Broken Lands
 - Wetlands
@@ -141,8 +190,30 @@ You can adjust:
 - Hunger and reproduction values
 - Herding and pack behavior
 - Mutation rate
+- Human behavior
+- Road and bridge behavior
+- Population pressure
 
-You can also save, export, import and share exact experiment setups.
+The interface uses a tabbed dashboard so the app stays manageable even with many systems enabled. Settings are grouped in a collapsible control center.
+
+## How to use
+
+1. Choose a preset.
+2. Press Reset World.
+3. Start the simulation.
+4. Watch the population graph and timeline.
+5. Use the inspector to inspect terrain, grass and individual animals.
+6. Tune settings in the Control Center.
+7. Save or export setups you want to keep.
+8. Use the run report to summarize what happened.
+
+Good starting presets:
+
+- Stable Ecosystem for long-running coexistence
+- Plain World for a clean baseline
+- Continental Wilds for richer terrain
+- Volatile World for disturbances
+- Civilization Frontier for humans, roads and bridges
 
 ## Tech stack
 
@@ -152,23 +223,41 @@ You can also save, export, import and share exact experiment setups.
 - LocalStorage
 - GitHub Pages
 
+## Project structure
+
+```text
+src/
+  components/       UI panels, charts, controls and dashboard
+  rendering/        Canvas rendering logic
+  simulation/       Ecosystem, terrain, species, civilization and infrastructure logic
+  utils/            Settings, persistence and helper utilities
+```
+
 ## Running locally
 
 Install dependencies:
 
-    npm install
+```bash
+npm install
+```
 
 Start development server:
 
-    npm run dev
+```bash
+npm run dev
+```
 
 Build production version:
 
-    npm run build
+```bash
+npm run build
+```
 
 Deploy to GitHub Pages:
 
-    npm run deploy
+```bash
+npm run deploy
+```
 
 ## Project goal
 
@@ -181,13 +270,17 @@ EcoPulse is designed as a portfolio-friendly simulation project that combines:
 - Parameter tuning
 - Data visualization
 - Interactive UX
+- Local persistence
+- Shareable experiments
 
-## Future roadmap
+## Future ideas
 
-Planned improvements:
+EcoPulse is finished as a v1.0 project, but possible future improvements could include:
 
-- Mobile and responsive layout polish
-- Better terrain generation and smoother biome visuals
-- More advanced charting and run summaries
-- Replay/export of simulation outcomes
-- Civilization mode with humans, resources, huts and roads
+- Better terrain visuals and biome blending
+- More advanced scenario scoring
+- Replay/export of full simulation runs
+- More advanced human settlements
+- More detailed roads, trade routes and resource logistics
+- Better mobile-specific controls
+- Screenshots or GIFs in the README

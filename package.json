@@ -1,7 +1,7 @@
 {
   "name": "ecopulse",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "description": "A browser-based ecosystem simulator with grass, prey, predators, hunger, reproduction, extinction and emergent behavior.",
   "scripts": {

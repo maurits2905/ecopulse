@@ -99,12 +99,11 @@ function Roadmap() {
   return (
     <div className="guide-content">
       <ul className="guide-list">
-        <li><strong>Now experimental:</strong> civilization mode with humans, resources, huts and settlement pressure.</li>
-        <li><strong>Next:</strong> better terrain generation and smoother biome visuals.</li>
-        <li><strong>Later:</strong> smarter civilization expansion with roads, resource pressure and visible settlement growth.</li>
-        <li><strong>Later:</strong> bridge building where humans can create limited crossings over water that animals can also use.</li>
-        <li><strong>Later:</strong> realistic bridge placement rules so bridges only appear at useful narrow crossings, with spacing between them instead of bridges everywhere.</li>
-        <li><strong>Later:</strong> more advanced charts, scenario scoring and replay summaries.</li>
+        <li><strong>Status:</strong> EcoPulse is now a finished v1.0 portfolio project.</li>
+        <li><strong>Included:</strong> ecosystem simulation, evolution, terrain, migration, disturbances, scenarios, reports and civilization mode.</li>
+        <li><strong>Included:</strong> human infrastructure with roads and limited bridges that animals can also use.</li>
+        <li><strong>Possible future:</strong> better terrain visuals, advanced scenario scoring and deeper civilization logistics.</li>
+        <li><strong>Possible future:</strong> screenshots, GIFs and extra portfolio presentation material.</li>
       </ul>
     </div>
   );
