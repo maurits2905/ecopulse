@@ -1,13 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import CivilizationPanel from "./components/CivilizationPanel";
-import ControlPanel from "./components/ControlPanel";
 import DisturbancePanel from "./components/DisturbancePanel";
 import EventLog from "./components/EventLog";
 import EvolutionPanel from "./components/EvolutionPanel";
 import ExperimentPanel from "./components/ExperimentPanel";
 import GuidePanel from "./components/GuidePanel";
 import InspectorPanel from "./components/InspectorPanel";
-import MobileSummaryBar from "./components/MobileSummaryBar";
 import PanelDock from "./components/PanelDock";
 import PopulationChart from "./components/PopulationChart";
 import RunSummaryPanel from "./components/RunSummaryPanel";
@@ -18,6 +16,7 @@ import SimulationCanvas from "./components/SimulationCanvas";
 import StatsPanel from "./components/StatsPanel";
 import TerrainPanel from "./components/TerrainPanel";
 import TimelinePanel from "./components/TimelinePanel";
+import TopBar from "./components/TopBar";
 import TraitChart from "./components/TraitChart";
 import { initializeCivilization } from "./simulation/civilization";
 import { createWorld } from "./simulation/createWorld";
@@ -302,45 +301,29 @@ export default function App() {
 
   return (
     <main className="app">
-      <header className="hero">
-        <div>
-          <p className="eyebrow">EcoPulse</p>
-          <h1>Emergent ecosystem simulator</h1>
-          <p className="hero-text">
-            Grass grows, prey feed, predators hunt, inherited traits mutate, seasons shift,
-            migration changes pressure, and humans can be spawned into any world as a separate civilization layer.
-          </p>
-        </div>
+      <TopBar
+        running={running}
+        setRunning={setRunning}
+        speed={speed}
+        setSpeed={setSpeed}
+        presetKey={presetKey}
+        setPresetKey={setPresetKey}
+        onReset={resetWorld}
+        onStep={stepWorld}
+        stats={worldView.stats}
+      />
 
-        <div className="hero-card">
-          <span>Current preset</span>
-          <strong>{selectedPreset.label}</strong>
-          <p>{selectedPreset.description}</p>
-        </div>
-      </header>
-
-      <div className="layout">
-        <section className="main-column">
+      <div className="workspace">
+        <section className="canvas-column">
           <SimulationCanvas world={worldView} onInspect={setInspected} />
 
-          <ControlPanel
-            running={running}
-            setRunning={setRunning}
-            speed={speed}
-            setSpeed={setSpeed}
-            presetKey={presetKey}
-            setPresetKey={setPresetKey}
-            onReset={resetWorld}
-            onStep={stepWorld}
-          />
-
-          <MobileSummaryBar stats={worldView.stats} />
-
-          <PopulationChart
-            history={worldView.history}
-            timelineEvents={worldView.timelineEvents}
-          />
-          <TraitChart history={worldView.history} />
+          <div className="charts-duo">
+            <PopulationChart
+              history={worldView.history}
+              timelineEvents={worldView.timelineEvents}
+            />
+            <TraitChart history={worldView.history} />
+          </div>
         </section>
 
         <PanelDock

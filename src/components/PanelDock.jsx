@@ -10,36 +10,30 @@ export default function PanelDock({ groups }) {
   );
 
   return (
-    <aside className="side-column panel-dock">
-      <div className="panel dock-tabs-panel">
-        <div className="panel-heading dock-heading">
-          <div>
-            <p className="eyebrow">Dashboard</p>
-            <h2>{activeGroup?.title ?? "Panels"}</h2>
-          </div>
-
-          <span className="dock-count">
-            {activeGroup?.items?.length ?? 0} panels
-          </span>
-        </div>
-
-        <div className="dock-tabs">
+    <aside className="panel-dock">
+      <div className="dock-tabs-panel">
+        <div className="dock-tab-row">
           {groups.map((group) => (
             <button
               key={group.key}
               type="button"
-              className={group.key === activeKey ? "active" : ""}
+              className={`dock-tab${group.key === activeKey ? " active" : ""}`}
               onClick={() => setActiveKey(group.key)}
             >
-              <span>{group.label}</span>
-              {group.badge ? <strong>{group.badge}</strong> : null}
+              {group.label}
+              {group.badge ? <span className="dock-tab-badge">{group.badge}</span> : null}
             </button>
           ))}
         </div>
 
-        {activeGroup?.description ? (
-          <p className="dock-description">{activeGroup.description}</p>
-        ) : null}
+        <div className="dock-panel-header">
+          <div>
+            <p className="eyebrow">{activeGroup?.title ?? "Panels"}</p>
+            {activeGroup?.description ? (
+              <p className="dock-description">{activeGroup.description}</p>
+            ) : null}
+          </div>
+        </div>
       </div>
 
       <div className="dock-panel-stack">
