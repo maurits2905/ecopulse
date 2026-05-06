@@ -138,6 +138,19 @@ function updatePrey(world) {
     const herdingCost =
       groupVectors.nearby > 0 ? settings.preyHerdingEnergyCost : 0;
 
+    const grassPercent = world.stats?.grassPercent ?? 1;
+    const preyPressure = world.prey.length / Math.max(1, settings.maxPrey);
+    const grassScarcity = Math.max(
+      0,
+      1 -
+        grassPercent /
+          Math.max(0.01, settings.preyReproductionGrassRequirement),
+    );
+
+    const carryingPressureCost =
+      preyPressure * settings.preyCarryingPressureStrength +
+      grassScarcity * settings.preyGrassScarcityPressure;
+
     prey.energy -=
       settings.preyHunger *
         metabolism *
@@ -146,7 +159,16 @@ function updatePrey(world) {
       speedCost +
       visionCost +
       crowdingCost +
-      herdingCost;
+      herdingCost +
+      carryingPressureCost;
+
+    if (
+      preyPressure > 0.82 &&
+      grassPercent < settings.preyReproductionGrassRequirement &&
+      world.random.chance(settings.preyOverpopulationMortality * preyPressure)
+    ) {
+      prey.dead = true;
+    }
 
     maybeReproducePrey(prey, world, newborns);
 
@@ -284,6 +306,18 @@ function updatePredators(world) {
     const packCost =
       packVectors.nearby > 0 ? settings.predatorPackEnergyCost : 0;
 
+    const predatorPressure =
+      world.predators.length / Math.max(1, settings.maxPredators);
+    const preyPerPredator =
+      world.prey.length / Math.max(1, world.predators.length);
+    const preyScarcityCost =
+      preyPerPredator < settings.predatorPreyRatioForReproduction
+        ? settings.predatorPreyScarcityPressure *
+          (1 -
+            preyPerPredator /
+              Math.max(1, settings.predatorPreyRatioForReproduction))
+        : 0;
+
     predator.energy -=
       settings.predatorHunger *
         metabolism *
@@ -293,7 +327,17 @@ function updatePredators(world) {
       visionCost +
       aggressionCost +
       crowdingCost +
-      packCost;
+      packCost +
+      preyScarcityCost;
+
+    if (
+      predatorPressure > 0.85 &&
+      world.random.chance(
+        settings.predatorOverpopulationMortality * predatorPressure,
+      )
+    ) {
+      predator.dead = true;
+    }
 
     if (shouldRest) {
       predator.energy += settings.predatorRestEnergySave;

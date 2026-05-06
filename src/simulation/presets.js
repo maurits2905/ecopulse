@@ -82,6 +82,14 @@ export const DEFAULT_SETTINGS = {
   preyStarvingEnergyRatio: 0.42,
   preyHerdingEnergyCost: 0.012,
 
+  preyCarryingPressureStrength: 0.55,
+  preyGrassScarcityPressure: 0.8,
+  preyOverpopulationMortality: 0.0009,
+  preyReproductionGrassRequirement: 0.22,
+
+  predatorOverpopulationMortality: 0.00055,
+  predatorPreyScarcityPressure: 0.42,
+
   predatorPackRadius: 6.5,
   predatorPackCohesionStrength: 0.22,
   predatorPackSeparationStrength: 0.52,

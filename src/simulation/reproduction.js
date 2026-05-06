@@ -9,23 +9,30 @@ export function maybeReproducePrey(prey, world, newborns) {
 
   const recentFood = prey.recentFood ?? 0;
   const localCrowding = prey.localCrowding ?? 0;
+  const grassPercent = world.stats?.grassPercent ?? 1;
+  const preyPressure = world.prey.length / Math.max(1, settings.maxPrey);
 
-  const foodFactor = recentFood > settings.preyRecentFoodNeeded ? 1 : 0.35;
+  const foodFactor = recentFood > settings.preyRecentFoodNeeded ? 1 : 0.3;
+  const grassFactor =
+    grassPercent < settings.preyReproductionGrassRequirement
+      ? Math.max(0.08, grassPercent / settings.preyReproductionGrassRequirement)
+      : 1;
+
   const crowdingFactor =
     1 / (1 + localCrowding * settings.preyCrowdingReproductionPenalty);
-  const populationPressure =
-    1 - Math.min(0.72, world.prey.length / settings.maxPrey);
+  const populationPressure = 1 - Math.min(0.82, preyPressure);
 
   const chance =
     settings.preyReproductionChance *
     foodFactor *
+    grassFactor *
     crowdingFactor *
-    Math.max(0.08, populationPressure);
+    Math.max(0.05, populationPressure);
 
   if (!world.random.chance(chance)) return;
 
   prey.energy -= settings.preyReproductionCost;
-  prey.cooldown = 105;
+  prey.cooldown = 115;
 
   newborns.push(createPreyChild(prey, world));
 }
@@ -46,18 +53,18 @@ export function maybeReproducePredator(predator, world, newborns) {
   const crowdingFactor =
     1 / (1 + localCrowding * settings.predatorCrowdingReproductionPenalty);
   const populationPressure =
-    1 - Math.min(0.75, world.predators.length / settings.maxPredators);
+    1 - Math.min(0.82, world.predators.length / settings.maxPredators);
 
   const chance =
     settings.predatorReproductionChance *
     preyAvailabilityFactor *
     crowdingFactor *
-    Math.max(0.08, populationPressure);
+    Math.max(0.05, populationPressure);
 
   if (!world.random.chance(chance)) return;
 
   predator.energy -= settings.predatorReproductionCost;
-  predator.cooldown = 155;
+  predator.cooldown = 165;
 
   newborns.push(createPredatorChild(predator, world));
 }
