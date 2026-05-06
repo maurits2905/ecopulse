@@ -1978,3 +1978,81 @@ input[type="range"] {
     grid-template-columns: 1fr;
   }
 }
+
+.dock-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dock-count {
+  flex: 0 0 auto;
+  padding: 7px 10px;
+  border: 1px solid rgba(233, 255, 243, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.055);
+  color: rgba(233, 255, 243, 0.62);
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.dock-panel-stack {
+  animation: dockFadeIn 180ms ease both;
+}
+
+@keyframes dockFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.panel {
+  scroll-margin-top: 18px;
+}
+
+.button,
+.toggle-button,
+.mini-action,
+.advanced-toggle,
+.dock-tabs button,
+.settings-group-header {
+  cursor: pointer;
+}
+
+.button:focus-visible,
+.toggle-button:focus-visible,
+.mini-action:focus-visible,
+.advanced-toggle:focus-visible,
+.dock-tabs button:focus-visible,
+.settings-group-header:focus-visible,
+select:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid rgba(130, 247, 173, 0.75);
+  outline-offset: 2px;
+}
+
+.settings-note {
+  line-height: 1.45;
+}
+
+.control-center-panel .settings-note {
+  margin-top: 14px;
+}
+
+@media (max-width: 560px) {
+  .dock-heading {
+    display: grid;
+  }
+
+  .dock-count {
+    width: fit-content;
+  }
+}

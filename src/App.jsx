@@ -285,7 +285,7 @@ export default function App() {
               key: "world",
               label: "World",
               title: "World systems",
-              description: "Season, terrain, disturbances and timeline events.",
+              description: "Terrain, seasons, disturbances and major timeline events.",
               items: [
                 <SeasonPanel stats={worldView.stats} />,
                 <TerrainPanel stats={worldView.stats} />,
@@ -295,9 +295,9 @@ export default function App() {
             },
             {
               key: "lab",
-              label: "Lab",
-              title: "Experiment lab",
-              description: "Inspection, evolution and saved/shared setups.",
+              label: "World",
+              title: "World systems",
+              description: "Season, terrain, disturbances and timeline events.",
               items: [
                 <InspectorPanel inspected={inspected} />,
                 <EvolutionPanel stats={worldView.stats} />,
@@ -331,9 +331,9 @@ export default function App() {
             },
             {
               key: "settings",
-              label: "Settings",
+              label: "Controls",
               title: "Control center",
-              description: "Grouped simulation controls and toggles.",
+              description: "Grouped controls, toggles and recent events.",
               items: [
                 <SettingsPanel settings={settings} setSettings={setSettings} />,
                 <EventLog events={worldView.events} />

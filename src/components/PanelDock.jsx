@@ -12,9 +12,15 @@ export default function PanelDock({ groups }) {
   return (
     <aside className="side-column panel-dock">
       <div className="panel dock-tabs-panel">
-        <div className="panel-heading">
-          <p className="eyebrow">Dashboard</p>
-          <h2>{activeGroup?.title ?? "Panels"}</h2>
+        <div className="panel-heading dock-heading">
+          <div>
+            <p className="eyebrow">Dashboard</p>
+            <h2>{activeGroup?.title ?? "Panels"}</h2>
+          </div>
+
+          <span className="dock-count">
+            {activeGroup?.items?.length ?? 0} panels
+          </span>
         </div>
 
         <div className="dock-tabs">
