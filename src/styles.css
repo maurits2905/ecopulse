@@ -712,9 +712,7 @@ input[type="range"] {
 .settings-select-grid .field select { width: 100%; }
 
 .control-center-panel {
-  max-height: calc(100vh - var(--topbar-h) - 60px);
-  overflow: auto;
-  scrollbar-width: thin;
+  overflow: visible;
 }
 
 .control-center-top { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 13px; }
@@ -1045,24 +1043,29 @@ input[type="range"] {
 
 /* ─── Panel dock ─────────────────────────────────────────────────────── */
 .panel-dock {
+  position: sticky;
+  top: calc(var(--topbar-h) + 24px);
+  max-height: calc(100vh - var(--topbar-h) - 40px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(130, 247, 173, 0.18) transparent;
   min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  padding-right: 1px;
 }
 
 .dock-tabs-panel {
   position: sticky;
-  top: calc(var(--topbar-h) + 24px);
+  top: 0;
   z-index: 8;
   border: 1px solid var(--panel-border);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.035)),
-    var(--panel-bg);
-  backdrop-filter: blur(20px);
+  background: rgba(5, 11, 8, 0.96);
+  backdrop-filter: blur(24px);
   border-radius: 20px;
   padding: 14px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.22);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28);
 }
 
 .dock-tab-row {
@@ -1216,11 +1219,11 @@ textarea:focus-visible {
     top: auto;
   }
 
-  .control-center-panel {
-    max-height: none;
-  }
-
   .panel-dock {
+    position: relative;
+    top: auto;
+    max-height: none;
+    overflow-y: visible;
     display: grid;
     grid-template-columns: 1fr;
   }
