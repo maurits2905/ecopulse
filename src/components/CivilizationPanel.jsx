@@ -8,6 +8,11 @@ function decimal(value) {
   return value.toFixed(2);
 }
 
+function percent(value) {
+  if (!Number.isFinite(value)) return "0%";
+  return `${Math.round(value * 100)}%`;
+}
+
 export default function CivilizationPanel({ stats }) {
   const civ = stats?.civilization;
 
@@ -39,10 +44,21 @@ export default function CivilizationPanel({ stats }) {
         <Info label="Food" value={number(civ.food)} />
         <Info label="Wood" value={number(civ.wood)} />
         <Info label="Pressure" value={decimal(civ.pressure)} />
+        <Info label="Stress" value={percent(civ.stress)} />
+      </div>
+
+      <div className="civilization-stress">
+        <div>
+          <span>Settlement stress</span>
+          <strong>{percent(civ.stress)}</strong>
+        </div>
+        <div className="civilization-stress-bar">
+          <i style={{ width: percent(civ.stress) }} />
+        </div>
       </div>
 
       <p className="settings-note">
-        Humans gather food, cut forest for wood, hunt prey and build huts when resources allow.
+        Humans now return home when weak, hunt less aggressively, and slowly create visible pressure around the settlement.
       </p>
     </section>
   );

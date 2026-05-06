@@ -316,6 +316,13 @@ const SLIDERS = [
     max: 0.005,
     step: 0.0001
   },
+  {
+    key: "humanMinimumPreyBeforeHunting",
+    label: "Human min prey before hunting",
+    min: 0,
+    max: 300,
+    step: 5
+   },
 ];
 
 function displayValue(value) {

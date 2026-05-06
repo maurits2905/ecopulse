@@ -37,6 +37,7 @@ export function drawWorld(canvas, world) {
   }
 
   drawSeasonAtmosphere(ctx, world, seasonVisual, viewWidth, viewHeight);
+  drawCivilizationInfluence(ctx, world, cellWidth, cellHeight);
   drawSettlement(ctx, world, cellWidth, cellHeight);
   drawAgents(ctx, world, cellWidth, cellHeight);
   drawHumans(ctx, world, cellWidth, cellHeight);
@@ -567,23 +568,32 @@ function drawSettlement(ctx, world, cellWidth, cellHeight) {
   ctx.shadowColor = "rgba(255, 210, 130, 0.7)";
   ctx.shadowBlur = world.settings.renderDetail === "performance" ? 0 : 12;
 
-  ctx.fillStyle = "rgba(168, 112, 62, 0.96)";
-  ctx.strokeStyle = "rgba(20, 10, 4, 0.95)";
-  ctx.lineWidth = 2;
-
   for (let i = 0; i < civ.huts; i++) {
-    const angle = (i / Math.max(1, civ.huts)) * Math.PI * 2;
-    const hx = x + Math.cos(angle) * size * 0.9;
-    const hy = y + Math.sin(angle) * size * 0.65;
+    const angle = (i / Math.max(1, civ.huts)) * Math.PI * 2 + i * 0.22;
+    const hx = x + Math.cos(angle) * size * 0.95;
+    const hy = y + Math.sin(angle) * size * 0.7;
     const hutSize = Math.max(4, size * 0.38);
 
     ctx.beginPath();
     ctx.moveTo(hx, hy - hutSize);
     ctx.lineTo(hx + hutSize, hy);
-    ctx.lineTo(hx + hutSize * 0.7, hy + hutSize);
-    ctx.lineTo(hx - hutSize * 0.7, hy + hutSize);
+    ctx.lineTo(hx + hutSize * 0.72, hy + hutSize);
+    ctx.lineTo(hx - hutSize * 0.72, hy + hutSize);
     ctx.lineTo(hx - hutSize, hy);
     ctx.closePath();
+
+    ctx.fillStyle = "rgba(168, 112, 62, 0.96)";
+    ctx.strokeStyle = "rgba(20, 10, 4, 0.95)";
+    ctx.lineWidth = 2;
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(hx - hutSize, hy);
+    ctx.lineTo(hx, hy - hutSize * 1.08);
+    ctx.lineTo(hx + hutSize, hy);
+    ctx.closePath();
+    ctx.fillStyle = "rgba(118, 72, 38, 0.96)";
     ctx.fill();
     ctx.stroke();
   }
@@ -591,6 +601,8 @@ function drawSettlement(ctx, world, cellWidth, cellHeight) {
   ctx.beginPath();
   ctx.arc(x, y, Math.max(3.5, size * 0.25), 0, Math.PI * 2);
   ctx.fillStyle = "rgba(255, 226, 150, 0.95)";
+  ctx.strokeStyle = "rgba(20, 10, 4, 0.95)";
+  ctx.lineWidth = 2;
   ctx.fill();
   ctx.stroke();
 
@@ -625,6 +637,71 @@ function drawHumans(ctx, world, cellWidth, cellHeight) {
       ctx.arc(x, y - radius * 0.25, radius * 0.28, 0, Math.PI * 2);
       ctx.fill();
     }
+  }
+
+  ctx.restore();
+}
+
+function drawCivilizationInfluence(ctx, world, cellWidth, cellHeight) {
+  const civ = world.civilization;
+
+  if (!civ?.enabled) return;
+
+  const x = civ.settlementX * cellWidth;
+  const y = civ.settlementY * cellHeight;
+  const radius =
+    (world.settings.humanSettlementImpactRadius + civ.huts * 0.28) *
+    Math.max(cellWidth, cellHeight);
+
+  ctx.save();
+
+  const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
+
+  gradient.addColorStop(0, `rgba(255, 205, 120, ${0.12 + civ.stress * 0.08})`);
+  gradient.addColorStop(0.45, "rgba(255, 205, 120, 0.045)");
+  gradient.addColorStop(1, "rgba(255, 205, 120, 0)");
+
+  ctx.fillStyle = gradient;
+  ctx.beginPath();
+  ctx.arc(x, y, radius, 0, Math.PI * 2);
+  ctx.fill();
+
+  if (world.settings.renderDetail !== "performance") {
+    drawSettlementPaths(ctx, world, cellWidth, cellHeight);
+  }
+
+  ctx.restore();
+}
+
+function drawSettlementPaths(ctx, world, cellWidth, cellHeight) {
+  const civ = world.civilization;
+  const x = civ.settlementX * cellWidth;
+  const y = civ.settlementY * cellHeight;
+
+  ctx.save();
+
+  ctx.strokeStyle = "rgba(190, 140, 78, 0.22)";
+  ctx.lineWidth = Math.max(1.2, Math.min(cellWidth, cellHeight) * 0.18);
+  ctx.lineCap = "round";
+
+  const pathCount = Math.min(8, Math.max(3, civ.huts + 2));
+
+  for (let i = 0; i < pathCount; i++) {
+    const angle = (i / pathCount) * Math.PI * 2 + Math.sin(i * 91.7) * 0.25;
+    const length =
+      (world.settings.humanSettlementImpactRadius + civ.huts * 0.55) *
+      Math.max(cellWidth, cellHeight) *
+      (0.55 + (i % 3) * 0.18);
+
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.quadraticCurveTo(
+      x + Math.cos(angle + 0.35) * length * 0.45,
+      y + Math.sin(angle + 0.35) * length * 0.45,
+      x + Math.cos(angle) * length,
+      y + Math.sin(angle) * length,
+    );
+    ctx.stroke();
   }
 
   ctx.restore();
