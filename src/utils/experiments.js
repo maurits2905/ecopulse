@@ -1,3 +1,5 @@
+import { getSafeExperiment } from "./settings";
+
 const STORAGE_KEY = "ecopulse.savedExperiments.v1";
 
 export function loadSavedExperiments() {
@@ -9,7 +11,9 @@ export function loadSavedExperiments() {
 
     if (!Array.isArray(parsed)) return [];
 
-    return parsed;
+    return parsed
+      .map((experiment) => getSafeExperiment(experiment))
+      .filter(Boolean);
   } catch {
     return [];
   }
@@ -75,14 +79,14 @@ export function validateExperimentPayload(payload) {
   if (payload.app !== "EcoPulse") return null;
   if (!payload.settings || typeof payload.settings !== "object") return null;
 
-  return {
+  return getSafeExperiment({
     app: "EcoPulse",
     version: payload.version ?? 1,
     name: payload.name || "Imported EcoPulse setup",
     presetKey: payload.presetKey || "balanced",
     settings: payload.settings,
     exportedAt: payload.exportedAt || null,
-  };
+  });
 }
 
 export function downloadExperimentJson(payload) {

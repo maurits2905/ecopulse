@@ -20,9 +20,26 @@ function getMarkerClass(category) {
   return "marker-system";
 }
 
-export default function PopulationChart({ history, timelineEvents = [] }) {
+export default function PopulationChart({ history = [], timelineEvents = [] }) {
   const width = 520;
   const height = 170;
+
+  if (!history.length) {
+    return (
+      <section className="panel chart-panel">
+        <div className="panel-heading horizontal">
+          <div>
+            <p className="eyebrow">Population graph</p>
+            <h2>Population, resources and timeline markers</h2>
+          </div>
+        </div>
+
+        <p className="inspector-empty small">
+          No chart data yet. Start or step the simulation to build history.
+        </p>
+      </section>
+    );
+  }
 
   const firstTick = history[0]?.tick ?? 0;
   const lastTick = history[history.length - 1]?.tick ?? 1;

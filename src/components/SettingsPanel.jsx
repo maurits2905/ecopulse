@@ -247,7 +247,7 @@ export default function SettingsPanel({ settings, setSettings }) {
                       min={slider.min}
                       max={slider.max}
                       step={slider.step}
-                      value={settings[slider.key] ?? slider.min}
+                      value={Number.isFinite(Number(settings[slider.key])) ? settings[slider.key] : slider.min}
                       onChange={(event) => updateSetting(slider.key, Number(event.target.value))}
                     />
                   </label>

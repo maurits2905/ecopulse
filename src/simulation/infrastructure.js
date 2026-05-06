@@ -36,7 +36,14 @@ export function canMoveThroughCell(world, x, y, cell) {
 }
 
 export function getInfrastructureMovementModifier(world, x, y) {
-  const cell = world.cells[Math.floor(y) * world.width + Math.floor(x)];
+  const cellX = Math.floor(x);
+  const cellY = Math.floor(y);
+
+  if (cellX < 0 || cellY < 0 || cellX >= world.width || cellY >= world.height) {
+    return 1;
+  }
+
+  const cell = world.cells[cellY * world.width + cellX];
 
   if (!cell) return 1;
 

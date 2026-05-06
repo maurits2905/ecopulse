@@ -19,6 +19,7 @@ import MobileSummaryBar from "./components/MobileSummaryBar";
 import RunSummaryPanel from "./components/RunSummaryPanel";
 import CivilizationPanel from "./components/CivilizationPanel";
 import PanelDock from "./components/PanelDock";
+import { getSafePresetKey, getSafeSettings } from "./utils/settings";
 import { buildRunSummary } from "./simulation/runSummary";
 import { createWorld } from "./simulation/createWorld";
 import { getPresetSettings, PRESETS } from "./simulation/presets";
@@ -37,7 +38,7 @@ import {
 
 export default function App() {
   const [presetKey, setPresetKey] = useState("balanced");
-  const [settings, setSettings] = useState(() => getPresetSettings("balanced"));
+  const [settings, setSettings] = useState(() => getSafeSettings(getPresetSettings("balanced")));
   const [running, setRunning] = useState(false);
   const [speed, setSpeed] = useState(2);
   const [worldView, setWorldView] = useState(() => createWorld(getPresetSettings("balanced")));
@@ -76,17 +77,20 @@ export default function App() {
   );
 
   function loadSettingsAsWorld(nextPresetKey, nextSettings) {
-    skipPresetResetRef.current = true;
-    setRunning(false);
-    setPresetKey(nextPresetKey ?? "balanced");
-    setSettings(nextSettings);
-    tickAccumulatorRef.current = 0;
-    setInspected(null);
+  const safePresetKey = getSafePresetKey(nextPresetKey ?? "balanced");
+  const safeSettings = getSafeSettings(nextSettings);
 
-    const nextWorld = createWorld(nextSettings);
-    worldRef.current = nextWorld;
-    setWorldView({ ...nextWorld });
-  }
+  skipPresetResetRef.current = true;
+  setRunning(false);
+  setPresetKey(safePresetKey);
+  setSettings(safeSettings);
+  tickAccumulatorRef.current = 0;
+  setInspected(null);
+
+  const nextWorld = createWorld(safeSettings);
+  worldRef.current = nextWorld;
+  setWorldView({ ...nextWorld });
+}
 
   const resetWorld = useCallback(() => {
     tickAccumulatorRef.current = 0;
@@ -185,7 +189,7 @@ export default function App() {
       return;
     }
 
-    const presetSettings = getPresetSettings(presetKey);
+    const presetSettings = getSafeSettings(getPresetSettings(getSafePresetKey(presetKey)));
     setSettings(presetSettings);
     tickAccumulatorRef.current = 0;
     setInspected(null);
