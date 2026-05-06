@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import CivilizationPanel from "./components/CivilizationPanel";
 import ControlPanel from "./components/ControlPanel";
 import DisturbancePanel from "./components/DisturbancePanel";
 import EventLog from "./components/EventLog";
@@ -6,7 +7,10 @@ import EvolutionPanel from "./components/EvolutionPanel";
 import ExperimentPanel from "./components/ExperimentPanel";
 import GuidePanel from "./components/GuidePanel";
 import InspectorPanel from "./components/InspectorPanel";
+import MobileSummaryBar from "./components/MobileSummaryBar";
+import PanelDock from "./components/PanelDock";
 import PopulationChart from "./components/PopulationChart";
+import RunSummaryPanel from "./components/RunSummaryPanel";
 import ScenarioPanel from "./components/ScenarioPanel";
 import SeasonPanel from "./components/SeasonPanel";
 import SettingsPanel from "./components/SettingsPanel";
@@ -15,15 +19,12 @@ import StatsPanel from "./components/StatsPanel";
 import TerrainPanel from "./components/TerrainPanel";
 import TimelinePanel from "./components/TimelinePanel";
 import TraitChart from "./components/TraitChart";
-import MobileSummaryBar from "./components/MobileSummaryBar";
-import RunSummaryPanel from "./components/RunSummaryPanel";
-import CivilizationPanel from "./components/CivilizationPanel";
-import PanelDock from "./components/PanelDock";
-import { getSafePresetKey, getSafeSettings } from "./utils/settings";
-import { buildRunSummary } from "./simulation/runSummary";
+import { initializeCivilization } from "./simulation/civilization";
 import { createWorld } from "./simulation/createWorld";
 import { getPresetSettings, PRESETS } from "./simulation/presets";
+import { buildRunSummary } from "./simulation/runSummary";
 import { evaluateScenario } from "./simulation/scenarios";
+import { collectStats } from "./simulation/stats";
 import { updateWorld } from "./simulation/updateWorld";
 import {
   createExperimentPayload,
@@ -35,6 +36,7 @@ import {
   saveExperiment,
   validateExperimentPayload
 } from "./utils/experiments";
+import { getSafePresetKey, getSafeSettings } from "./utils/settings";
 
 export default function App() {
   const [presetKey, setPresetKey] = useState("balanced");
@@ -54,12 +56,9 @@ export default function App() {
   const tickAccumulatorRef = useRef(0);
   const skipPresetResetRef = useRef(false);
 
-  const selectedPreset = useMemo(() => PRESETS[presetKey], [presetKey]);
+  const selectedPreset = useMemo(() => PRESETS[presetKey] ?? PRESETS.balanced, [presetKey]);
   const scenario = useMemo(() => evaluateScenario(presetKey, worldView), [presetKey, worldView]);
-  const runSummary = useMemo(
-  () => buildRunSummary(worldView, scenario),
-  [worldView, scenario]
-  );
+  const runSummary = useMemo(() => buildRunSummary(worldView, scenario), [worldView, scenario]);
 
   const currentExperimentPayload = useMemo(
     () =>
@@ -77,26 +76,36 @@ export default function App() {
   );
 
   function loadSettingsAsWorld(nextPresetKey, nextSettings) {
-  const safePresetKey = getSafePresetKey(nextPresetKey ?? "balanced");
-  const safeSettings = getSafeSettings(nextSettings);
+    const safePresetKey = getSafePresetKey(nextPresetKey ?? "balanced");
+    const safeSettings = getSafeSettings({
+      ...nextSettings,
+      civilizationEnabled: false
+    });
 
-  skipPresetResetRef.current = true;
-  setRunning(false);
-  setPresetKey(safePresetKey);
-  setSettings(safeSettings);
-  tickAccumulatorRef.current = 0;
-  setInspected(null);
+    skipPresetResetRef.current = true;
+    setRunning(false);
+    setPresetKey(safePresetKey);
+    setSettings(safeSettings);
+    tickAccumulatorRef.current = 0;
+    setInspected(null);
 
-  const nextWorld = createWorld(safeSettings);
-  worldRef.current = nextWorld;
-  setWorldView({ ...nextWorld });
-}
+    const nextWorld = createWorld(safeSettings);
+    worldRef.current = nextWorld;
+    setWorldView({ ...nextWorld });
+  }
 
   const resetWorld = useCallback(() => {
     tickAccumulatorRef.current = 0;
     setInspected(null);
 
-    const nextWorld = createWorld(settings);
+    const resetSettings = getSafeSettings({
+      ...settings,
+      civilizationEnabled: false
+    });
+
+    setSettings(resetSettings);
+
+    const nextWorld = createWorld(resetSettings);
     worldRef.current = nextWorld;
     setWorldView({ ...nextWorld });
   }, [settings]);
@@ -105,6 +114,65 @@ export default function App() {
     updateWorld(worldRef.current);
     setWorldView({ ...worldRef.current });
   }, []);
+
+  const spawnCivilization = useCallback(() => {
+    const nextSettings = getSafeSettings({
+      ...worldRef.current.settings,
+      ...settings,
+      civilizationEnabled: true
+    });
+
+    setSettings(nextSettings);
+
+    const world = worldRef.current;
+    world.settings = nextSettings;
+
+    initializeCivilization(world);
+
+    world.stats = collectStats(world);
+
+    if (world.history.length > 0) {
+      world.history[world.history.length - 1] = world.stats;
+    } else {
+      world.history.push(world.stats);
+    }
+
+    setWorldView({ ...world });
+  }, [settings]);
+
+  const removeCivilization = useCallback(() => {
+    const nextSettings = getSafeSettings({
+      ...worldRef.current.settings,
+      ...settings,
+      civilizationEnabled: false
+    });
+
+    setSettings(nextSettings);
+
+    const world = worldRef.current;
+    world.settings = nextSettings;
+    world.humans = [];
+
+    if (world.civilization) {
+      world.civilization.enabled = false;
+      world.civilization.population = 0;
+      world.civilization.food = 0;
+      world.civilization.wood = 0;
+      world.civilization.huts = 0;
+      world.civilization.pressure = 0;
+      world.civilization.stress = 0;
+    }
+
+    world.stats = collectStats(world);
+
+    if (world.history.length > 0) {
+      world.history[world.history.length - 1] = world.stats;
+    } else {
+      world.history.push(world.stats);
+    }
+
+    setWorldView({ ...world });
+  }, [settings]);
 
   const handleSaveExperiment = useCallback(() => {
     const next = saveExperiment(currentExperimentPayload);
@@ -189,7 +257,11 @@ export default function App() {
       return;
     }
 
-    const presetSettings = getSafeSettings(getPresetSettings(getSafePresetKey(presetKey)));
+    const presetSettings = getSafeSettings({
+      ...getPresetSettings(getSafePresetKey(presetKey)),
+      civilizationEnabled: false
+    });
+
     setSettings(presetSettings);
     tickAccumulatorRef.current = 0;
     setInspected(null);
@@ -236,12 +308,12 @@ export default function App() {
           <h1>Emergent ecosystem simulator</h1>
           <p className="hero-text">
             Grass grows, prey feed, predators hunt, inherited traits mutate, seasons shift,
-            migration changes pressure, and environmental events disturb the balance.
+            migration changes pressure, and humans can be spawned into any world as a separate civilization layer.
           </p>
         </div>
 
         <div className="hero-card">
-          <span>Current scenario</span>
+          <span>Current preset</span>
           <strong>{selectedPreset.label}</strong>
           <p>{selectedPreset.description}</p>
         </div>
@@ -299,9 +371,9 @@ export default function App() {
             },
             {
               key: "lab",
-              label: "World",
-              title: "World systems",
-              description: "Season, terrain, disturbances and timeline events.",
+              label: "Lab",
+              title: "Experiment lab",
+              description: "Inspect cells, track evolution and save or share setups.",
               items: [
                 <InspectorPanel inspected={inspected} />,
                 <EvolutionPanel stats={worldView.stats} />,
@@ -325,11 +397,17 @@ export default function App() {
             {
               key: "civilization",
               label: "Civilization",
-              title: "Civilization mode",
-              description: "Humans, huts, settlement pressure, bridges and future infrastructure.",
-              badge: worldView.stats?.civilization?.enabled ? `${worldView.stats?.humans ?? 0} humans` : "Off",
+              title: "Civilization layer",
+              description: "Spawn humans into the current world, independent of the selected preset.",
+              badge: worldView.stats?.civilization?.enabled
+                ? `${worldView.stats?.humans ?? 0} humans`
+                : "Off",
               items: [
-                <CivilizationPanel stats={worldView.stats} />,
+                <CivilizationPanel
+                  stats={worldView.stats}
+                  onSpawnCivilization={spawnCivilization}
+                  onRemoveCivilization={removeCivilization}
+                />,
                 <GuidePanel />
               ]
             },

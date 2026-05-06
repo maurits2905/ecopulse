@@ -81,28 +81,25 @@ const SETTING_GROUPS = [
   },
   {
     key: "civilization",
-    title: "Civilization",
-    description: "Humans, huts, hunting, roads and bridges.",
+    title: "Civilization settings",
+    description: "Settings used when you spawn humans into the current world.",
     defaultOpen: false,
     sliders: [
-        { key: "initialHumans", label: "Initial humans", min: 0, max: 40, step: 1 },
-        { key: "maxHumans", label: "Max humans", min: 0, max: 220, step: 5 },
-
-        { key: "humanHuntChance", label: "Human hunt chance", min: 0, max: 0.35, step: 0.01 },
-        { key: "humanMinimumPreyBeforeHunting", label: "Human min prey before hunting", min: 0, max: 300, step: 5 },
-        { key: "humanGrowthChance", label: "Human growth chance", min: 0, max: 0.08, step: 0.002 },
-        { key: "humanLandPressure", label: "Human land pressure", min: 0, max: 1.5, step: 0.05 },
-        { key: "humanDeforestationChance", label: "Human deforestation chance", min: 0, max: 0.005, step: 0.0001 },
-
-        { key: "bridgeBuildChance", label: "Bridge build chance", min: 0, max: 0.08, step: 0.002 },
-        { key: "bridgeBuildCooldown", label: "Bridge build cooldown", min: 100, max: 3000, step: 50 },
-        { key: "bridgeMinimumSpacing", label: "Bridge spacing", min: 4, max: 40, step: 1 },
-        { key: "bridgeWoodCost", label: "Bridge wood cost", min: 20, max: 250, step: 5 },
-
-        { key: "roadCreateChance", label: "Road create chance", min: 0, max: 0.2, step: 0.005 },
-        { key: "roadMaxDistanceFromSettlement", label: "Road max distance", min: 5, max: 70, step: 1 },
-        { key: "maxRoadCells", label: "Max road cells", min: 0, max: 1500, step: 25 },
-        { key: "roadMovementBonus", label: "Road movement bonus", min: 1, max: 1.5, step: 0.01 }
+      { key: "initialHumans", label: "Initial humans", min: 0, max: 40, step: 1 },
+      { key: "maxHumans", label: "Max humans", min: 0, max: 220, step: 5 },
+      { key: "humanHuntChance", label: "Human hunt chance", min: 0, max: 0.35, step: 0.01 },
+      { key: "humanMinimumPreyBeforeHunting", label: "Human min prey before hunting", min: 0, max: 300, step: 5 },
+      { key: "humanGrowthChance", label: "Human growth chance", min: 0, max: 0.08, step: 0.002 },
+      { key: "humanLandPressure", label: "Human land pressure", min: 0, max: 1.5, step: 0.05 },
+      { key: "humanDeforestationChance", label: "Human deforestation chance", min: 0, max: 0.005, step: 0.0001 },
+      { key: "bridgeBuildChance", label: "Bridge build chance", min: 0, max: 0.08, step: 0.002 },
+      { key: "bridgeBuildCooldown", label: "Bridge build cooldown", min: 100, max: 3000, step: 50 },
+      { key: "bridgeMinimumSpacing", label: "Bridge spacing", min: 4, max: 40, step: 1 },
+      { key: "bridgeWoodCost", label: "Bridge wood cost", min: 20, max: 250, step: 5 },
+      { key: "roadCreateChance", label: "Road create chance", min: 0, max: 0.2, step: 0.005 },
+      { key: "roadMaxDistanceFromSettlement", label: "Road max distance", min: 5, max: 70, step: 1 },
+      { key: "maxRoadCells", label: "Max road cells", min: 0, max: 1500, step: 25 },
+      { key: "roadMovementBonus", label: "Road movement bonus", min: 1, max: 1.5, step: 0.01 }
     ]
   }
 ];
@@ -217,11 +214,10 @@ export default function SettingsPanel({ settings, setSettings }) {
         <Toggle label="Terrain" active={settings.terrainEnabled} onClick={() => toggleSetting("terrainEnabled")} />
         <Toggle label="Migration" active={settings.migrationEnabled} onClick={() => toggleSetting("migrationEnabled")} />
         <Toggle label="Disturbances" active={settings.environmentalEventsEnabled} onClick={() => toggleSetting("environmentalEventsEnabled")} />
-        <Toggle label="Civilization" active={settings.civilizationEnabled} onClick={() => toggleSetting("civilizationEnabled")} />
         <Toggle label="Bridges" active={settings.bridgeBuildingEnabled} onClick={() => toggleSetting("bridgeBuildingEnabled")} />
         <Toggle label="Roads" active={settings.roadBuildingEnabled} onClick={() => toggleSetting("roadBuildingEnabled")} />
         <Toggle label="Grid" active={settings.showGrid} onClick={() => toggleSetting("showGrid")} />
-     </div>
+      </div>
 
       <div className="settings-groups">
         {SETTING_GROUPS.map((group) => (
@@ -259,7 +255,7 @@ export default function SettingsPanel({ settings, setSettings }) {
       </div>
 
       <p className="settings-note">
-        Most changes apply after reset. Population pressure helps prevent prey from taking over when grass and space become limited.
+        Choose a world preset first. Humans are spawned separately from the Civilization tab, so civilization is no longer locked to one map.
       </p>
     </section>
   );

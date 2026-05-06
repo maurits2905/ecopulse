@@ -13,7 +13,11 @@ function percent(value) {
   return `${Math.round(value * 100)}%`;
 }
 
-export default function CivilizationPanel({ stats }) {
+export default function CivilizationPanel({
+  stats,
+  onSpawnCivilization,
+  onRemoveCivilization
+}) {
   const civ = stats?.civilization;
 
   if (!civ?.enabled) {
@@ -21,11 +25,19 @@ export default function CivilizationPanel({ stats }) {
       <section className="panel civilization-panel">
         <div className="panel-heading">
           <p className="eyebrow">Civilization</p>
-          <h2>Disabled</h2>
+          <h2>Spawn humans</h2>
         </div>
 
         <p className="inspector-empty small">
-          Turn on civilization mode to add humans, resource gathering, huts and settlement pressure.
+          Humans are no longer tied to a preset. Choose any world preset first, then spawn a settlement into the current world.
+        </p>
+
+        <button className="button save-button" onClick={onSpawnCivilization}>
+          Spawn humans in this world
+        </button>
+
+        <p className="settings-note">
+          This adds a settlement, humans, food, wood, huts, roads and bridge-building logic without changing the selected map.
         </p>
       </section>
     );
@@ -59,8 +71,12 @@ export default function CivilizationPanel({ stats }) {
         </div>
       </div>
 
+      <button className="button save-button" onClick={onRemoveCivilization}>
+        Remove humans from this world
+      </button>
+
       <p className="settings-note">
-        Humans now return home when weak, hunt less aggressively, and slowly create visible pressure around the settlement.
+        Humans gather food, cut forest, hunt prey, build huts, create roads and can build limited bridges over useful water crossings.
       </p>
     </section>
   );
