@@ -512,6 +512,27 @@ export const PRESETS = {
     },
   },
 
+  continentalWilds: {
+    label: "Continental Wilds",
+    description:
+      "Large natural regions, stronger rivers and richer biome structure.",
+    settings: {
+      waterAmount: 0.045,
+      riverAmount: 0.75,
+      forestAmount: 0.17,
+      fertileAmount: 0.13,
+      barrenAmount: 0.08,
+      biomeScale: 36,
+      initialPrey: 140,
+      initialPredators: 24,
+      maxPrey: 900,
+      maxPredators: 240,
+      migrationEnabled: true,
+      environmentalEventsEnabled: true,
+      mutationRate: 0.11,
+    },
+  },
+
   recoveryLab: {
     label: "Recovery Lab",
     description: "Few predators, damaged grass, and a fragile recovery curve.",

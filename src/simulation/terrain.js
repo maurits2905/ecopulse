@@ -61,110 +61,89 @@ export function isBlockedTerrain(type) {
 export function generateTerrainMap(settings, random) {
   const width = settings.worldWidth;
   const height = settings.worldHeight;
+
+  if (!settings.terrainEnabled) {
+    return Array(width * height).fill(TERRAIN_TYPES.GRASSLAND);
+  }
+
   const seed = random.int(1, 999999);
+  const biomeScale = settings.biomeScale ?? 28;
 
-  const elevationScale = settings.biomeScale ?? 22;
-  const moistureScale = Math.max(12, elevationScale * 0.8);
-  const fertilityScale = Math.max(10, elevationScale * 0.55);
+  const elevation = createDomainWarpedNoiseMap({
+    width,
+    height,
+    seed: seed + 11,
+    scale: biomeScale * 1.15,
+    octaves: 5,
+    persistence: 0.52,
+    warpStrength: 0.72,
+  });
 
-  const elevation = createNoiseMap(
+  const moisture = createDomainWarpedNoiseMap({
     width,
     height,
-    seed + 11,
-    elevationScale,
-    4,
-    0.52,
-  );
-  const moisture = createNoiseMap(
+    seed: seed + 29,
+    scale: biomeScale * 0.92,
+    octaves: 5,
+    persistence: 0.56,
+    warpStrength: 0.9,
+  });
+
+  const fertility = createDomainWarpedNoiseMap({
     width,
     height,
-    seed + 29,
-    moistureScale,
-    4,
-    0.56,
-  );
-  const fertility = createNoiseMap(
-    width,
-    height,
-    seed + 47,
-    fertilityScale,
-    3,
-    0.5,
-  );
+    seed: seed + 47,
+    scale: biomeScale * 0.62,
+    octaves: 4,
+    persistence: 0.5,
+    warpStrength: 0.55,
+  });
 
   const terrain = Array(width * height).fill(TERRAIN_TYPES.GRASSLAND);
 
-  if (!settings.terrainEnabled) {
-    return terrain;
-  }
+  applyCoastsAndLowlandWater({
+    terrain,
+    elevation,
+    moisture,
+    width,
+    height,
+    settings,
+  });
 
-  const waterLevel = 0.23 + settings.waterAmount * 1.15;
-  const pondLevel = 0.16 + settings.waterAmount * 0.75;
+  addLakes({
+    terrain,
+    elevation,
+    moisture,
+    width,
+    height,
+    random,
+    settings,
+  });
 
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const index = y * width + x;
-      const edgeOcean = getEdgeOceanFactor(
-        x,
-        y,
-        width,
-        height,
-        settings.waterAmount,
-      );
-      const localElevation = elevation[index] - edgeOcean;
+  addTerrainFollowingRivers({
+    terrain,
+    elevation,
+    moisture,
+    width,
+    height,
+    random,
+    settings,
+  });
 
-      if (
-        localElevation < waterLevel ||
-        (localElevation < pondLevel && moisture[index] > 0.68)
-      ) {
-        terrain[index] = TERRAIN_TYPES.WATER;
-      }
-    }
-  }
+  assignLandBiomes({
+    terrain,
+    elevation,
+    moisture,
+    fertility,
+    width,
+    height,
+    settings,
+  });
 
-  addRivers(terrain, elevation, moisture, width, height, random, settings);
-
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      const index = y * width + x;
-
-      if (terrain[index] === TERRAIN_TYPES.WATER) continue;
-
-      const nearbyWater = hasNearbyTerrain(
-        terrain,
-        width,
-        height,
-        x,
-        y,
-        TERRAIN_TYPES.WATER,
-        3,
-      );
-      const e = elevation[index];
-      const m = moisture[index];
-      const f = fertility[index];
-
-      const forestScore = m * 0.72 + f * 0.28;
-      const barrenScore = (1 - m) * 0.7 + e * 0.18 + (1 - f) * 0.12;
-      const fertileScore = f * 0.55 + m * 0.25 + (nearbyWater ? 0.28 : 0);
-
-      const forestThreshold = 0.62 - settings.forestAmount * 0.72;
-      const barrenThreshold = 0.73 - settings.barrenAmount * 0.78;
-      const fertileThreshold = 0.72 - settings.fertileAmount * 0.85;
-
-      if (forestScore > forestThreshold && e > 0.22) {
-        terrain[index] = TERRAIN_TYPES.FOREST;
-      } else if (barrenScore > barrenThreshold && !nearbyWater) {
-        terrain[index] = TERRAIN_TYPES.BARREN;
-      } else if (fertileScore > fertileThreshold) {
-        terrain[index] = TERRAIN_TYPES.FERTILE;
-      } else {
-        terrain[index] = TERRAIN_TYPES.GRASSLAND;
-      }
-    }
-  }
-
-  smoothSmallTerrainNoise(terrain, width, height);
-  softenWaterEdges(terrain, width, height);
+  smoothTerrainRegions(terrain, width, height, 3);
+  protectWaterBodies(terrain, elevation, moisture, width, height);
+  enrichWaterEdges(terrain, width, height);
+  removeTinyIsolatedCells(terrain, width, height);
 
   return terrain;
 }
@@ -185,47 +164,524 @@ export function getTerrainCounts(world) {
   return counts;
 }
 
-function createNoiseMap(width, height, seed, scale, octaves, persistence) {
-  const map = new Array(width * height);
+function applyCoastsAndLowlandWater({
+  terrain,
+  elevation,
+  moisture,
+  width,
+  height,
+  settings,
+}) {
+  const waterAmount = settings.waterAmount ?? 0.035;
+  const baseWaterLevel = 0.16 + waterAmount * 1.25;
+  const coastStrength = waterAmount < 0.045 ? 0.12 : waterAmount * 2.2;
 
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const index = y * width + x;
+      const edgeFactor = getEdgeFactor(x, y, width, height);
+      const coastDrop = edgeFactor * coastStrength;
+      const lowlandWater = elevation[index] - coastDrop < baseWaterLevel;
+      const wetDepression =
+        elevation[index] < baseWaterLevel + 0.045 && moisture[index] > 0.68;
+
+      if (lowlandWater || wetDepression) {
+        terrain[index] = TERRAIN_TYPES.WATER;
+      }
+    }
+  }
+}
+
+function addLakes({
+  terrain,
+  elevation,
+  moisture,
+  width,
+  height,
+  random,
+  settings,
+}) {
+  const lakeAttempts = Math.round(4 + (settings.waterAmount ?? 0.035) * 85);
+
+  for (let i = 0; i < lakeAttempts; i++) {
+    const x = random.int(4, width - 5);
+    const y = random.int(4, height - 5);
+    const index = y * width + x;
+
+    const isGoodLakeSeed = elevation[index] < 0.42 && moisture[index] > 0.56;
+
+    if (!isGoodLakeSeed) continue;
+
+    const radius = random.range(
+      2.2,
+      6.5 + (settings.waterAmount ?? 0.035) * 22,
+    );
+    carveBlob(
+      terrain,
+      width,
+      height,
+      x,
+      y,
+      radius,
+      TERRAIN_TYPES.WATER,
+      random,
+      0.55,
+    );
+  }
+}
+
+function addTerrainFollowingRivers({
+  terrain,
+  elevation,
+  moisture,
+  width,
+  height,
+  random,
+  settings,
+}) {
+  const riverAmount = settings.riverAmount ?? 0.55;
+  const riverCount = Math.max(0, Math.round(riverAmount * 4));
+
+  for (let r = 0; r < riverCount; r++) {
+    const start = findRiverStart(elevation, width, height, random);
+    let x = start.x;
+    let y = start.y;
+
+    const riverWidth = random.range(0.75, 1.45 + riverAmount * 1.1);
+    const maxSteps = width + height;
+
+    for (let step = 0; step < maxSteps; step++) {
+      carveRiverCell(
+        terrain,
+        elevation,
+        moisture,
+        width,
+        height,
+        x,
+        y,
+        riverWidth,
+      );
+
+      const next = findDownhillNeighbor(
+        elevation,
+        moisture,
+        width,
+        height,
+        x,
+        y,
+        random,
+      );
+
+      if (!next) break;
+
+      x = next.x;
+      y = next.y;
+
+      const index = y * width + x;
+      const edgeDistance = Math.min(x, y, width - x - 1, height - y - 1);
+
+      if (terrain[index] === TERRAIN_TYPES.WATER && step > 12) break;
+      if (edgeDistance <= 1) break;
+    }
+  }
+}
+
+function findRiverStart(elevation, width, height, random) {
+  let best = {
+    x: random.int(2, width - 3),
+    y: random.int(2, height - 3),
+    value: 0,
+  };
+
+  for (let i = 0; i < 80; i++) {
+    const x = random.int(2, width - 3);
+    const y = random.int(2, height - 3);
+    const value = elevation[y * width + x];
+
+    if (value > best.value) {
+      best = { x, y, value };
+    }
+  }
+
+  return best;
+}
+
+function findDownhillNeighbor(
+  elevation,
+  moisture,
+  width,
+  height,
+  x,
+  y,
+  random,
+) {
+  let best = null;
+  let bestScore = Infinity;
+
+  for (let oy = -1; oy <= 1; oy++) {
+    for (let ox = -1; ox <= 1; ox++) {
+      if (ox === 0 && oy === 0) continue;
+
+      const nx = x + ox;
+      const ny = y + oy;
+
+      if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+
+      const index = ny * width + nx;
+      const edgePull = getEdgeFactor(nx, ny, width, height) * 0.18;
+      const wetPull = moisture[index] * 0.055;
+      const randomBend = random.range(0, 0.035);
+
+      const score = elevation[index] - edgePull - wetPull + randomBend;
+
+      if (score < bestScore) {
+        bestScore = score;
+        best = { x: nx, y: ny };
+      }
+    }
+  }
+
+  return best;
+}
+
+function carveRiverCell(
+  terrain,
+  elevation,
+  moisture,
+  width,
+  height,
+  x,
+  y,
+  radius,
+) {
+  const lowlandBonus = (1 - elevation[y * width + x]) * 0.85;
+  const wetBonus = moisture[y * width + x] * 0.45;
+  const effectiveRadius = radius + lowlandBonus + wetBonus;
+
+  const minX = Math.max(0, Math.floor(x - effectiveRadius));
+  const maxX = Math.min(width - 1, Math.ceil(x + effectiveRadius));
+  const minY = Math.max(0, Math.floor(y - effectiveRadius));
+  const maxY = Math.min(height - 1, Math.ceil(y + effectiveRadius));
+
+  for (let cy = minY; cy <= maxY; cy++) {
+    for (let cx = minX; cx <= maxX; cx++) {
+      const dx = cx - x;
+      const dy = cy - y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance <= effectiveRadius) {
+        terrain[cy * width + cx] = TERRAIN_TYPES.WATER;
+      }
+    }
+  }
+}
+
+function assignLandBiomes({
+  terrain,
+  elevation,
+  moisture,
+  fertility,
+  width,
+  height,
+  settings,
+}) {
+  const forestAmount = settings.forestAmount ?? 0.11;
+  const barrenAmount = settings.barrenAmount ?? 0.08;
+  const fertileAmount = settings.fertileAmount ?? 0.09;
+
+  const forestThreshold = 0.68 - forestAmount * 0.9;
+  const barrenThreshold = 0.76 - barrenAmount * 0.95;
+  const fertileThreshold = 0.72 - fertileAmount * 0.95;
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const index = y * width + x;
+
+      if (terrain[index] === TERRAIN_TYPES.WATER) continue;
+
+      const nearWater = hasNearbyTerrain(
+        terrain,
+        width,
+        height,
+        x,
+        y,
+        TERRAIN_TYPES.WATER,
+        3,
+      );
+      const veryNearWater = hasNearbyTerrain(
+        terrain,
+        width,
+        height,
+        x,
+        y,
+        TERRAIN_TYPES.WATER,
+        1,
+      );
+
+      const e = elevation[index];
+      const m = moisture[index];
+      const f = fertility[index];
+
+      const forestScore = m * 0.68 + f * 0.22 + (e > 0.28 ? 0.08 : 0);
+      const fertileScore = f * 0.52 + m * 0.25 + (nearWater ? 0.26 : 0);
+      const barrenScore =
+        (1 - m) * 0.72 + (1 - f) * 0.18 + (e > 0.72 ? 0.06 : 0);
+
+      if (veryNearWater && fertileScore > fertileThreshold - 0.12) {
+        terrain[index] = TERRAIN_TYPES.FERTILE;
+      } else if (forestScore > forestThreshold && !veryNearWater) {
+        terrain[index] = TERRAIN_TYPES.FOREST;
+      } else if (barrenScore > barrenThreshold && !nearWater) {
+        terrain[index] = TERRAIN_TYPES.BARREN;
+      } else if (fertileScore > fertileThreshold) {
+        terrain[index] = TERRAIN_TYPES.FERTILE;
+      } else {
+        terrain[index] = TERRAIN_TYPES.GRASSLAND;
+      }
+    }
+  }
+}
+
+function smoothTerrainRegions(terrain, width, height, passes = 2) {
+  for (let pass = 0; pass < passes; pass++) {
+    const copy = [...terrain];
+
+    for (let y = 1; y < height - 1; y++) {
+      for (let x = 1; x < width - 1; x++) {
+        const index = y * width + x;
+        const current = copy[index];
+        const counts = countNeighborTypes(copy, width, height, x, y);
+        const dominant = getDominantTerrain(counts);
+
+        if (current === TERRAIN_TYPES.WATER) {
+          if (counts.water <= 2 && dominant.type !== TERRAIN_TYPES.WATER) {
+            terrain[index] = dominant.type;
+          }
+          continue;
+        }
+
+        if (dominant.type !== current && dominant.count >= 5) {
+          terrain[index] = dominant.type;
+        }
+      }
+    }
+  }
+}
+
+function protectWaterBodies(terrain, elevation, moisture, width, height) {
+  for (let y = 1; y < height - 1; y++) {
+    for (let x = 1; x < width - 1; x++) {
+      const index = y * width + x;
+
+      if (terrain[index] !== TERRAIN_TYPES.WATER) continue;
+
+      const counts = countNeighborTypes(terrain, width, height, x, y);
+      const wetLowland = elevation[index] < 0.32 || moisture[index] > 0.72;
+
+      if (counts.water <= 1 && !wetLowland) {
+        terrain[index] = TERRAIN_TYPES.FERTILE;
+      }
+    }
+  }
+}
+
+function enrichWaterEdges(terrain, width, height) {
+  const copy = [...terrain];
+
+  for (let y = 1; y < height - 1; y++) {
+    for (let x = 1; x < width - 1; x++) {
+      const index = y * width + x;
+
+      if (copy[index] === TERRAIN_TYPES.WATER) continue;
+
+      const nearWater = hasNearbyTerrain(
+        copy,
+        width,
+        height,
+        x,
+        y,
+        TERRAIN_TYPES.WATER,
+        1,
+      );
+
+      if (!nearWater) continue;
+
+      if (copy[index] === TERRAIN_TYPES.BARREN) {
+        terrain[index] = TERRAIN_TYPES.GRASSLAND;
+      }
+
+      if (copy[index] === TERRAIN_TYPES.GRASSLAND) {
+        terrain[index] = TERRAIN_TYPES.FERTILE;
+      }
+    }
+  }
+}
+
+function removeTinyIsolatedCells(terrain, width, height) {
+  const copy = [...terrain];
+
+  for (let y = 1; y < height - 1; y++) {
+    for (let x = 1; x < width - 1; x++) {
+      const index = y * width + x;
+      const current = copy[index];
+      const counts = countNeighborTypes(copy, width, height, x, y);
+
+      if ((counts[current] ?? 0) <= 1) {
+        const dominant = getDominantTerrain(counts);
+        terrain[index] = dominant.type;
+      }
+    }
+  }
+}
+
+function carveBlob(
+  terrain,
+  width,
+  height,
+  centerX,
+  centerY,
+  radius,
+  type,
+  random,
+  roughness = 0.5,
+) {
+  const minX = Math.max(0, Math.floor(centerX - radius - 2));
+  const maxX = Math.min(width - 1, Math.ceil(centerX + radius + 2));
+  const minY = Math.max(0, Math.floor(centerY - radius - 2));
+  const maxY = Math.min(height - 1, Math.ceil(centerY + radius + 2));
+
+  for (let y = minY; y <= maxY; y++) {
+    for (let x = minX; x <= maxX; x++) {
+      const dx = x - centerX;
+      const dy = y - centerY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      const edgeNoise = random.range(-roughness, roughness);
+
+      if (distance <= radius + edgeNoise) {
+        terrain[y * width + x] = type;
+      }
+    }
+  }
+}
+
+function createDomainWarpedNoiseMap({
+  width,
+  height,
+  seed,
+  scale,
+  octaves,
+  persistence,
+  warpStrength,
+}) {
+  const warpX = createNoiseMap(
+    width,
+    height,
+    seed + 501,
+    scale * 1.8,
+    3,
+    0.55,
+    false,
+  );
+  const warpY = createNoiseMap(
+    width,
+    height,
+    seed + 907,
+    scale * 1.8,
+    3,
+    0.55,
+    false,
+  );
+
+  const map = new Array(width * height);
   let min = Infinity;
   let max = -Infinity;
 
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
-      let amplitude = 1;
-      let frequency = 1;
-      let value = 0;
-      let amplitudeTotal = 0;
-
-      for (let octave = 0; octave < octaves; octave++) {
-        const nx = (x / scale) * frequency;
-        const ny = (y / scale) * frequency;
-
-        value += valueNoise(nx, ny, seed + octave * 1013) * amplitude;
-        amplitudeTotal += amplitude;
-
-        amplitude *= persistence;
-        frequency *= 2;
-      }
-
-      value /= amplitudeTotal;
-
       const index = y * width + x;
-      map[index] = value;
 
+      const wx = (warpX[index] - 0.5) * warpStrength * scale;
+      const wy = (warpY[index] - 0.5) * warpStrength * scale;
+
+      const value = fractalNoise(
+        (x + wx) / scale,
+        (y + wy) / scale,
+        seed,
+        octaves,
+        persistence,
+      );
+
+      map[index] = value;
       min = Math.min(min, value);
       max = Math.max(max, value);
     }
   }
 
+  normalizeMap(map, min, max, true);
+
+  return map;
+}
+
+function createNoiseMap(
+  width,
+  height,
+  seed,
+  scale,
+  octaves,
+  persistence,
+  smooth = true,
+) {
+  const map = new Array(width * height);
+  let min = Infinity;
+  let max = -Infinity;
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const value = fractalNoise(
+        x / scale,
+        y / scale,
+        seed,
+        octaves,
+        persistence,
+      );
+      const index = y * width + x;
+
+      map[index] = value;
+      min = Math.min(min, value);
+      max = Math.max(max, value);
+    }
+  }
+
+  normalizeMap(map, min, max, smooth);
+
+  return map;
+}
+
+function fractalNoise(x, y, seed, octaves, persistence) {
+  let amplitude = 1;
+  let frequency = 1;
+  let value = 0;
+  let amplitudeTotal = 0;
+
+  for (let octave = 0; octave < octaves; octave++) {
+    value +=
+      valueNoise(x * frequency, y * frequency, seed + octave * 1013) *
+      amplitude;
+    amplitudeTotal += amplitude;
+    amplitude *= persistence;
+    frequency *= 2;
+  }
+
+  return value / amplitudeTotal;
+}
+
+function normalizeMap(map, min, max, smooth) {
   const range = Math.max(0.0001, max - min);
 
   for (let i = 0; i < map.length; i++) {
-    map[i] = smoothStep((map[i] - min) / range);
+    const normalized = (map[i] - min) / range;
+    map[i] = smooth ? smoothStep(normalized) : normalized;
   }
-
-  return map;
 }
 
 function valueNoise(x, y, seed) {
@@ -254,166 +710,6 @@ function hash2D(x, y, seed) {
   value = value ^ (value >> 16);
 
   return ((value >>> 0) % 10000) / 10000;
-}
-
-function addRivers(
-  terrain,
-  elevation,
-  moisture,
-  width,
-  height,
-  random,
-  settings,
-) {
-  const riverCount = Math.round((settings.riverAmount ?? 0.55) * 3);
-
-  for (let r = 0; r < riverCount; r++) {
-    const vertical = random.chance(0.5);
-    const riverWidth = random.range(0.8, 1.9 + settings.waterAmount * 8);
-    const bendStrength = random.range(5, 15);
-    const phaseA = random.range(0, Math.PI * 2);
-    const phaseB = random.range(0, Math.PI * 2);
-
-    if (vertical) {
-      const startX = random.range(width * 0.18, width * 0.82);
-
-      for (let y = 0; y < height; y++) {
-        const progress = y / Math.max(1, height - 1);
-        const centerX =
-          startX +
-          Math.sin(progress * Math.PI * 2 + phaseA) * bendStrength +
-          Math.sin(progress * Math.PI * 5 + phaseB) * bendStrength * 0.35;
-
-        carveRiverAt(
-          terrain,
-          elevation,
-          moisture,
-          width,
-          height,
-          centerX,
-          y,
-          riverWidth,
-        );
-      }
-    } else {
-      const startY = random.range(height * 0.18, height * 0.82);
-
-      for (let x = 0; x < width; x++) {
-        const progress = x / Math.max(1, width - 1);
-        const centerY =
-          startY +
-          Math.sin(progress * Math.PI * 2 + phaseA) * bendStrength * 0.65 +
-          Math.sin(progress * Math.PI * 5 + phaseB) * bendStrength * 0.24;
-
-        carveRiverAt(
-          terrain,
-          elevation,
-          moisture,
-          width,
-          height,
-          x,
-          centerY,
-          riverWidth,
-        );
-      }
-    }
-  }
-}
-
-function carveRiverAt(
-  terrain,
-  elevation,
-  moisture,
-  width,
-  height,
-  centerX,
-  centerY,
-  radius,
-) {
-  const minX = Math.max(0, Math.floor(centerX - radius - 1));
-  const maxX = Math.min(width - 1, Math.ceil(centerX + radius + 1));
-  const minY = Math.max(0, Math.floor(centerY - radius - 1));
-  const maxY = Math.min(height - 1, Math.ceil(centerY + radius + 1));
-
-  for (let y = minY; y <= maxY; y++) {
-    for (let x = minX; x <= maxX; x++) {
-      const dx = x - centerX;
-      const dy = y - centerY;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-      const index = y * width + x;
-
-      const lowlandBonus = 1 - elevation[index];
-      const wetnessBonus = moisture[index] * 0.35;
-      const effectiveRadius = radius + lowlandBonus * 1.2 + wetnessBonus;
-
-      if (distance <= effectiveRadius) {
-        terrain[index] = TERRAIN_TYPES.WATER;
-      }
-    }
-  }
-}
-
-function getEdgeOceanFactor(x, y, width, height, waterAmount) {
-  if (waterAmount < 0.055) return 0;
-
-  const distanceToEdge = Math.min(x, y, width - x - 1, height - y - 1);
-  const coastDepth = 4 + waterAmount * 60;
-
-  if (distanceToEdge > coastDepth) return 0;
-
-  const coastStrength = 1 - distanceToEdge / coastDepth;
-
-  return coastStrength * waterAmount * 2.4;
-}
-
-function smoothSmallTerrainNoise(terrain, width, height) {
-  const copy = [...terrain];
-
-  for (let y = 1; y < height - 1; y++) {
-    for (let x = 1; x < width - 1; x++) {
-      const index = y * width + x;
-      const current = copy[index];
-
-      if (current === TERRAIN_TYPES.WATER) continue;
-
-      const counts = countNeighborTypes(copy, width, height, x, y);
-      const dominant = getDominantTerrain(counts);
-
-      if (
-        dominant.type !== current &&
-        dominant.count >= 6 &&
-        dominant.type !== TERRAIN_TYPES.WATER
-      ) {
-        terrain[index] = dominant.type;
-      }
-    }
-  }
-}
-
-function softenWaterEdges(terrain, width, height) {
-  const copy = [...terrain];
-
-  for (let y = 1; y < height - 1; y++) {
-    for (let x = 1; x < width - 1; x++) {
-      const index = y * width + x;
-
-      if (copy[index] === TERRAIN_TYPES.WATER) continue;
-
-      const nearWater = hasNearbyTerrain(
-        copy,
-        width,
-        height,
-        x,
-        y,
-        TERRAIN_TYPES.WATER,
-        1,
-      );
-
-      if (nearWater && copy[index] === TERRAIN_TYPES.BARREN) {
-        terrain[index] = TERRAIN_TYPES.GRASSLAND;
-      }
-    }
-  }
 }
 
 function countNeighborTypes(terrain, width, height, x, y) {
@@ -452,10 +748,7 @@ function getDominantTerrain(counts) {
     }
   }
 
-  return {
-    type,
-    count,
-  };
+  return { type, count };
 }
 
 function hasNearbyTerrain(terrain, width, height, x, y, type, radius) {
@@ -466,13 +759,21 @@ function hasNearbyTerrain(terrain, width, height, x, y, type, radius) {
 
       if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
 
-      if (terrain[ny * width + nx] === type) {
-        return true;
-      }
+      if (terrain[ny * width + nx] === type) return true;
     }
   }
 
   return false;
+}
+
+function getEdgeFactor(x, y, width, height) {
+  const distanceToEdge = Math.min(x, y, width - x - 1, height - y - 1);
+  const coastDepth = Math.min(width, height) * 0.16;
+
+  if (distanceToEdge > coastDepth) return 0;
+
+  const value = 1 - distanceToEdge / coastDepth;
+  return value * value;
 }
 
 function lerp(a, b, amount) {
